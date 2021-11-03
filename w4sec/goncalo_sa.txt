@@ -1,0 +1,32 @@
+Lessons learned
+	1	
+		Attackers can DOS you if you need to send Ether to an address with transfer
+		A solution is to have the transfer done by the recipient (withdraw method)
+	2
+		Gas limit DOS can happen in loops
+		There can also be limits with gas block limits
+	3
+		Reentrancy bad
+	4
+		Overflow bad
+		Underflow bad
+		Also the require statements can also have that problem
+	5
+		Frontrunning
+		TX order dependence
+		Price can be changed before the buy TX is executed thanks to public mempool
+	6
+		Can't get randomness on the blockchain
+		You can't get the blockhash of the current block
+		
+	7
+		underflow on require
+		underflow on balanceOf[msg.sender]
+		overflow on balanceOf[_to]
+		require will always fail
+		1to1 between amount of wei held in contract and total supply
+		require is useless (within the function I can see)
+		no fail string on require 
+		calling the function with the recipient as me
+		with the require, you can send ether to the contract making the require check fail
+		shouldn't require this.balance, instead do some internal accounting checking
