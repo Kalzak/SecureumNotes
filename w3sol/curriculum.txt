@@ -1,0 +1,26 @@
+Content
+	Article
+		https://secureum.substack.com/p/solidity-201
+	Youtube
+		https://youtu.be/3bFgsmsQXrE
+		https://youtu.be/TqMIbouwePE
+		https://youtu.be/C0zBhTgppLQ
+		https://youtu.be/L_9Fk6HRwpU
+		https://youtu.be/0kx8M4u5980
+Quiz
+	https://www.classmarker.com/online-test/start/?quiz=gya616177b1bad99
+	Details
+		32 questions
+		16 minutes
+Assignments
+	Understand OpenZeppelins Library contracts
+		https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts
+	Understand Solidity syntax and semantics implemented in
+		Uniswap V3 contract and related dependencies
+			https://github.com/Uniswap/uniswap-v3-core/tree/main/contracts
+		Fei protocol contracts and related dependencies
+			https://github.com/fei-protocol/fei-protocol-core/tree/master/contracts				
+		Chainlink contracts and related dependencies
+			https://github.com/smartcontractkit/chainlink/tree/develop/contracts/src/v0.4
+		Opyn Gamma protocol contracts and related dependencies
+			https://github.com/opynfinance/GammaProtocol/tree/master/contracts/core

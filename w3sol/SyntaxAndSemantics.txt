@@ -1,0 +1,138 @@
+Inheriting
+	>>>
+	import "./ImportContract.sol";
+	
+	contract MainContract is ImportContract { ... }
+	<<<
+
+Function overriding simple inheritance
+	>>>
+	contract Base {
+		function foo() virtual public {}
+	}
+
+	contract Top is Base {
+		function foo() public override {}
+	}
+	<<<
+
+Function overriding multiple inheritance
+	>>>
+	contract Base {
+		function foo() virtual public{}
+	}
+	
+	contract OtherBase {
+		function foo() virtual public{}
+	}
+	
+	contract Top is Base, OtherBase {
+		// Derives from multiple contracts defining `foo` so we must explicitly override it
+		function foo() public override(Base, OtherBase) {}
+	}
+	<<<
+
+Declaring an interface and using it
+	>>>
+	interface Calc {
+		function add() external view returns (uint256);
+	}
+
+	contract Test is Calc {
+		constructor() public{}
+		
+		function getResult external view returns (uint256) {
+			// Actual code goes here
+		}
+	}
+
+Declaring a library
+  NOTE: If there are multiple libraries declared in a file you do import "./LibraryFile:ParticularLibrary"
+	>>>
+	// Here `Data` is a struct for mapping uint256 to bool
+
+	library LibName {
+		// Struct or enum or constant variables declarations here but no state variables
+	
+		// Function definitions here
+		function insert(Data storage self, uint value) public returns (bool) {
+			// Code behave like normal here
+		}
+	}
+
+	contract Main {
+		Data knownValues;
+
+		function runLibFunc(uint256 value) public {
+			require(LibName.insert(knownValues, value));
+		}
+	}
+	<<<
+Constructor with inheritance (no arguments on child constructor)
+	>>>
+	contract Parent {
+		public string name;
+
+		constructor(string _name) {
+			name = _name
+		}
+	}
+	
+	contract Child1 is Parent {
+		// If you have no constructor/empty then it uses the parent one
+		constructor() {}
+	}
+	<<<	
+Constructor with inheritance (arguments on child constructor)
+	>>>
+	contract Parent {
+		public string name;
+
+		constructor(string _name) {
+			name = _name
+		}
+	}
+	
+	// You can specify the constructor values directly
+	contract Child1 is Parent("NameHere") {
+		constructor() {}
+	}
+
+	// OR
+	// Through a 'modifier' of the derived contract
+	contract Child2 is Parent {
+		constructor(string _name) Base(_name) {}
+	}
+	
+	// Further demonstration
+	// Through a 'modifier' of the derived contract
+	contract Child2 is Parent {
+		uint256 age;
+
+		constructor(string _name, uint256 _age) Base(_name) {
+			age = _age;
+		}
+	}
+	<<<
+Inline assembly
+	>>>
+	function external_call(address destination, uint256 value, uint256 dataLength, bytes data) private returns (bool) {
+		bool result;
+		assembly {
+			let x := mload(0x40)			<- Go to the free memory pointer
+			let d := add(data, 32)			<- Add 32 to the address of `data` and store new address at `d`
+			result := call(				<- Function call
+								     Args: gas, addr, val, argOst, argLen, retOst, retLen
+				sub(gas, 34710),		<- Give all remaining call minus 34710 to called function
+				destination,			<- The address of the contract to be called
+				value, 				<- The amount of ether to send to the function
+				d,				<- FirstArg
+				dataLength,			<- Length of FirstArg
+				x,				<- FirstRet gets saved to `x` which is the free memory pointer
+				0				<- Length of FirstRet (we aren't doing anything with it)
+			)
+		}
+		return result;
+	}
+	<<<
+

@@ -1,0 +1,44 @@
+Article
+	https://secureum.substack.com/p/solidity-101
+Videos
+	Block1
+		https://youtu.be/5eLqFac5Tkg
+	Block2
+		https://youtu.be/TCl1IcGl_3I
+	Block3
+		https://youtu.be/6VIJpze1jbU
+	Block4
+		https://youtu.be/WgU7KKKomMk
+	Block5
+		https://youtu.be/_oN7XuyhoZA
+Assignments
+	1
+		Read chapter7 from "Mastering Ethereum"
+			https://github.com/ethereumbook/ethereumbook/blob/develop/07smart-contracts-solidity.asciidoc
+	2
+		Understand solidity syntax and semantics implemented in OpenZeppelin's ERC20 contract
+			https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol
+	3
+		Understand soliditys syntax and semantics implemented in OpenZeppelin's ERC721 (NFT) contract
+			https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol
+	4
+		Understand solidity syntax and semantics implemented in OpenZeppelin's security related contracts
+		  (Ownable, Pausable, ReentrancyGuard)
+			https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/access
+			https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/security
+	5
+		Experiment with the various solidity concepts using remix
+			https://remix.ethereum.org/
+Next steps
+	1
+		Go over the content in 'Solidity101' by reading article and watching the 5 videos
+	2
+		Go over the provided references in the article
+	3
+		Go over the assignments
+	4
+		Once comfortable take quiz
+Quiz
+	Link
+		https://www.classmarker.com/online-test/start/?quiz=j9c615e8e1872bf0
+		

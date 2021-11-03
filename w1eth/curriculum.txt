@@ -1,0 +1,45 @@
+Article:
+	https://secureum.substack.com/p/ethereum-101
+Videos:
+	Block1:
+		https://www.youtube.com/watch?v=44qhIBMGMoM
+	Block2:
+		https://www.youtube.com/watch?v=zIeBfuXxuWs
+	Block3:
+		https://www.youtube.com/watch?v=ltvTIr4K63s
+	Block4:
+		https://www.youtube.com/watch?v=MFoxW07ICKs
+	Block5:
+		https://www.youtube.com/watch?v=I-TjCtjDs1M
+Quiz:
+	Link:
+		https://www.classmarker.com/online-test/start/?quiz=j4q614c601964264
+	Info:
+		32 questions
+Assignments:
+	1:
+		Read Ethereum whitepaper
+		https://ethereum.org/en/whitepaper/
+	2:
+		Read Ethereum yellowpaper
+		https://ethereum.github.io/yellowpaper/paper.pdf
+	3:
+		Reach chapters (1,2,3,4,6,12,14) from "Mastering Ethereum"
+		https://github.com/ethereumbook/ethereumbook
+	4: 
+		Read references in Ethereum 101 article
+	5:
+		Browse through topics at
+		https://ethereum.org/en/developers/docs/
+	6:
+		Explore blocks, transactions and other protocol internals at
+		https://etherscan.io/
+Steps:
+	1:
+		Go over "Ethereum 101" video blocks by reading article along with videos
+	2:
+		Go over provided references in arcticle "Ethereum 101"
+	3:
+		Complete assignments
+	4:
+		Once comfortable with content take quiz

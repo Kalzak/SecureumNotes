@@ -1,0 +1,63 @@
+Ownable
+	Contract module which provides a basic access control mechanism
+	There is an account (owner) that can be granted exclusive access to specific functions
+	
+	State variables
+		_owner					The owner address
+	Events
+		OwnershipTransferred			.
+	Functions
+		constuctor				Initializes the contract setting the deployer as the initial owner
+		owner					Returns the address of the current owner
+		renounceOwnership			Leaves the contract without owner
+							  Will not be possible to call `onlyOwner` functions anymore
+		transferOwnership			Checks that the owner can't be 0x0
+							  Calls _transferOwnership
+		_transferOwnership			Updates owners and emits event {ownershipTransferred}
+	Modifiers
+		onlyOwner				Throws if called by any account other than the owner
+AccessControl
+	Kinda similar but there are different specific roles that accounts can have
+Pausable
+	Contract module which allows children to implement an emergency stop mechanism that can be triggered by an authorized account
+	State variables
+		_paused					Boolean to indicate if paused			
+	Events
+		Paused					Emitted when the pause is triggered by `account`
+		Unpaused				Emitted when the pause if lifter by `account`
+	Functions
+		paused					Returns true if contract is paused, false otherwise
+		_pause					Triggered stopped state
+		_unpause				Returns to normal state
+	Modifiers
+		whenNotPaused				Modifier to make a function callable only when the contract is not paused
+		whenPaused				Modifier to make a function callable only when the contract is paused
+ReentrancyGuard
+	Contract module that helps prevent reentrant calls into a function
+	Inheriting from `ReentrancyGuard` will make the {nonReentract} modifier available, which can be applied to functions
+	  to make sure there are no nested (reentrant) calls to them
+	Note that there is a single `nonReentrant` guard, functions marked as `nonReentrant` may not call one another
+		This can be worked around by making those functions `private`, and then adding `external` `nonReentrant` entry points
+		  to them
+	COOL NOTE:
+		Booleans are more expensive than uint256 or any type that tokes up a full word because each write operation emits an
+		  extra SLOAD to first read the slot's contents, replace the bits taken up by the boolean, and then write back
+		This is the compiler's defense against contract upgrades and pointer aliasing, and it cannot be disabled
+		The values being non-zero values makes deployment a bit more expensiv, but in exchange for the refund on every
+		  call to nonReentrant will be lower in amount
+		Since refunds are capped to a percentage of the total TX's gas, it is best to keep them low in cases like this one,
+		  to increase the likelyhood of the full refund coming into effect
+	State variables
+		_NOT_ENTERED				A constant uint256 set to 1
+		_ENTERED				A constant uint256 set to 2
+		_status					status = 
+	Functions
+		constructor				Sets _status to _NOT_ENTERED
+	Modifiers
+		nonReentrant				Prevents a contract from calling itself, directly on indirectly
+							  Calling a `nonReentrant` function from another `nonReentrant` function
+							    is not supported
+							  It is possible to prevent this from happening by making the `nonReentrant`
+							    function external, and making it call a `private` function that does 
+							    the actual work
+							

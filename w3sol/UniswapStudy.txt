@@ -1,0 +1,459 @@
+v3-core/contracts/
+├── interfaces
+│   ├── callback
+│   │   ├── IUniswapV3FlashCallback.sol
+│   │   ├── IUniswapV3MintCallback.sol
+│   │   └── IUniswapV3SwapCallback.sol
+│   ├── IERC20Minimal.sol
+│   ├── IUniswapV3Factory.sol
+│   ├── IUniswapV3PoolDeployer.sol
+│   ├── IUniswapV3Pool.sol
+│   ├── LICENSE
+│   └── pool
+│       ├── IUniswapV3PoolActions.sol
+│       ├── IUniswapV3PoolDerivedState.sol
+│       ├── IUniswapV3PoolEvents.sol
+│       ├── IUniswapV3PoolImmutables.sol
+│       ├── IUniswapV3PoolOwnerActions.sol
+│       └── IUniswapV3PoolState.sol
+├── libraries
+│   ├── BitMath.sol
+│   ├── FixedPoint128.sol
+│   ├── FixedPoint96.sol
+│   ├── FullMath.sol
+│   ├── LICENSE_GPL
+│   ├── LICENSE_MIT
+│   ├── LiquidityMath.sol
+│   ├── LowGasSafeMath.sol
+│   ├── Oracle.sol
+│   ├── Position.sol
+│   ├── SafeCast.sol
+│   ├── SqrtPriceMath.sol
+│   ├── SwapMath.sol
+│   ├── TickBitmap.sol
+│   ├── TickMath.sol
+│   ├── Tick.sol
+│   ├── TransferHelper.sol
+│   └── UnsafeMath.sol
+├── NoDelegateCall.sol
+├── test
+│   ├── BitMathEchidnaTest.sol
+│   ├── BitMathTest.sol
+│   ├── FullMathEchidnaTest.sol
+│   ├── FullMathTest.sol
+│   ├── LiquidityMathTest.sol
+│   ├── LowGasSafeMathEchidnaTest.sol
+│   ├── MockTimeUniswapV3PoolDeployer.sol
+│   ├── MockTimeUniswapV3Pool.sol
+│   ├── NoDelegateCallTest.sol
+│   ├── OracleEchidnaTest.sol
+│   ├── OracleTest.sol
+│   ├── SqrtPriceMathEchidnaTest.sol
+│   ├── SqrtPriceMathTest.sol
+│   ├── SwapMathEchidnaTest.sol
+│   ├── SwapMathTest.sol
+│   ├── TestERC20.sol
+│   ├── TestUniswapV3Callee.sol
+│   ├── TestUniswapV3ReentrantCallee.sol
+│   ├── TestUniswapV3Router.sol
+│   ├── TestUniswapV3SwapPay.sol
+│   ├── TickBitmapEchidnaTest.sol
+│   ├── TickBitmapTest.sol
+│   ├── TickEchidnaTest.sol
+│   ├── TickMathEchidnaTest.sol
+│   ├── TickMathTest.sol
+│   ├── TickOverflowSafetyEchidnaTest.sol
+│   ├── TickTest.sol
+│   ├── UniswapV3PoolSwapTest.sol
+│   └── UnsafeMathEchidnaTest.sol
+├── UniswapV3Factory.sol
+├── UniswapV3PoolDeployer.sol
+└── UniswapV3Pool.sol
+
+interfaces/
+	callback/
+		IUniswapV3FlashCallback
+			Summary
+				Callback for IUniswapV3PoolActions#flash
+				Any contract that calls IUniswapV3PoolActions#flash must imlement this interface
+			Functions
+				uniswapV3FlashCallback(uint256 fee0, uint256 fee1, bytes calldata data) external;
+		IUniswapV3MintCallback
+			Summary
+				Callback for IUniswapV3PoolActions#mint
+				Any contract that calls IUniswapV3PoolActions#mint must implement this interface
+			Functions
+				uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external;
+		IUniswapV3SwapCallback
+			Summary
+				Callback for IUniswapV3PoolActions#swap
+				Any contract that calls IUniswapV3PoolActions#swap must implement this interface
+			Functions
+				uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external;
+					amountDeltas are the amonut of tokenX that was sent (negative) or must be recieved (positive)
+					  by the pool at the end of the swap
+					If positive, the callback must send that amount of tokenX to the pool
+	IERC20Minimal
+		Summary
+			Contains a subset of the full ERC20 interface that is used in Uniswap V3
+		Functions
+			balanceOf
+			transfer
+			allowance
+			approve
+			transferFrom
+			Transfer
+			Approval
+	IUniswapV3Factory
+		Summary
+			The interface for the Uniswap V3 Factory
+			The Uniswap V3 Factory facilitates creation of Uniswap V3 pools and control over the protocol fees
+		Events
+			OwnerChanged(address indexed oldOwner, address indexed newOwner);
+			event PoolCreated(
+			    address indexed token0,
+			    address indexed token1,
+			    uint24 indexed fee,
+			    int24 tickSpacing,
+			    address pool
+			  );
+			FeeAmountEnabled(unit24 indexed fee, int24 indexed tickSpacing);
+		Functions
+			owner() external view returns (address);
+			feeAmountTickSpacing(uint24 fee) external view returns (int24);
+			getPool(address tokenA, address tokenB, uint24 fee) external view returns (address pool);
+			createPool(address tokenA, address tokenB, uint24 fee) external returns (address pool);
+			setOwner(address _owner) external;
+			enableFeeAmount(uint24 fee, int24 tickSpacing) external;
+	IUniswapV3PoolDeployer
+		Summary
+			An interface for a contract that is capable of deploying Uniswap V3 Pools
+			A contract that constructs a pool must imlement this to pass arguments to the pool
+			This is used to avoid haivng constructor arguments in the pool contract, which results in the init code hash
+			  of the pool being constant allowing the CREATE2 address of the pool to be cheaply computed on-chain
+		Functions
+			parameters() external view returns (
+			    address factory,
+			    address token0,
+			    address token1,
+			    uint24 fee,
+			    int24 tickSpacing
+			  );
+				NOTE:	Gets the parameters to be used in constructing the pool
+					Called by the pool constructor to fetch the parametrs of the pool
+	IUniswapV3Pool
+		Summary
+			The interface for a Uniswap V3 Pool
+			A Uniswap pool facilitates swapping and automated market making between any two assets that strictly conform
+			  to the ERC20 specification
+			The pool interface is broken up into many smaller pieces
+		Inheritance
+			IUniswapV3PoolImmutables
+			IUniswapV3PoolState
+			IUniswapV3PoolDerivedState
+			IUniswapV3PoolActions
+			IUniswapV3PoolOwnerActions
+			IUniswapV3PoolEvents
+			NOTE:	Inheritance files are from ./pool/
+	pool/
+		IUniSwapV3PoolEvents
+			Summary
+				Permissionless pool actions
+				Contains pool methods that can be called by anyone
+			Functions
+				initialize(uint160 sqrtPriceX96) external)
+					NOTE: 	Sets the initial price for the pool
+						Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
+						Q notation reference here: https://en.wikipedia.org/wiki/Q_(number_format)
+						Basically Q64.96 means 64 bits precision integer, and 96 bits precision decimal
+				mint(address recipient, int24 tickLower, int24 tickUpper, uint128 amount, bytes calldata data) external returns(
+			    	uint256 amount0,
+			    	uint256 amount1
+			  	);
+					NOTE: 	Adds liquidity for the given recipient/tickLower/tickUpper position
+						Caller recieves a callback from IUniswapV3MintCallback#uniswapV3MintCallback
+					  	in which they must pay any token0 or token1 owed for the liquidity
+				collect(address recipient, int24 tickLower, int24 tickUpper, uint128 amount0Requested, uint128 amount1Requested)
+			  	external returns (uint256 amount0, uint246 amount1);
+					NOTE:	Collects tokens owed to a position
+						Must be called by the position owner
+						This is basically how a position owner collects their fees
+				burn(int24 tickLower, int24 tickUpper, uint128 amount) external returns (uint256 amount0, uint256 amount1);
+					NOTE: 	Burn liquidity from the sender and accountt tokens owed for the liquidity to the position
+						Can be called with amount 0 to trigger recalculation of fees owed
+						Fees must be collected separately via a call to #collect
+				swap(address recipient, bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96, bytes calldata data)
+			  	external returns (int256 amount0, int256 amount1)
+					NOTE: 	Swap token0 for token1, or token1 for token0
+						The caller of this method recieves a callback in the form of IUniswapV3SwapCallback
+					  	#uniswapV3SwapCallback
+						ZeroForOne is the dinertion of the swap, true for token0 to token1, false for token1 to token0
+						sqrtPriceLimitX96 is basically the slippage limit
+				flash(address recipient, uint256 amount0, uint256 amount1, bytes calldata data) external;
+					NOTE: 	Recieve token0 and/or token1 and pay it back, plus a fee, in the callback
+						The caller of this method receives a callback in the form of IUniswapV3FlashCallback
+					  	#uniswapV3FlashCallback with 0 amount {0,1} and sending the donation amount(s) from callback
+				increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;
+					NOTE: 	Increases the maximum number of price and liquitiy observations that this pool will store
+						This method is a no-op if the pool already has an observationCardinalityNext greater than or	
+					  	equal to the input obversationCardinalityNext
+						This is basically increases the array size of previous observations from oracles
+						Makes sense that you can't decrease size because it's not worth the hassle gas wize
+					 	once it's been written already
+		IUneswapV3PoolEvents
+			Summary
+				Events emitted by a pool
+			Events
+				Initialize
+				Mint
+				Collect
+				Burn
+				Swap
+				Flash
+				IncreaseObservationCardinalityNext
+				SetFeeProtocol
+				CollectProtocol
+		IUniswapV3PoolOwnerActions
+			Summary
+				Permissioned pool actions
+				Contains pool methods that may only be called by the factory owner
+			Functions
+				setFeeProtocol(uint6 feeProtocol0, uint6 feeProtocol1) external
+				colletProtocol(address recipient, uint128 amount0Requested, uint128 amount1Requested) external returns (
+				    uint128 amount0,
+				    uint128 amount1
+				  );
+		IUniswapV3PoolDerivedState
+			Summary
+				Pool state that is not stored
+				Contains view functions to provide information about the pool that is computed rather than stored on-chain
+				Functions here may have variable gas costs
+			Functions
+				observe(uint32[] calldata secondAgos) external view returns (
+				    int56 memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
+					NOTE:	Returns the cumulative tick and liquidity as of each timestamp `secondAgo` from the current
+						block timestamp
+						To get a time weigted average tick or liquidity-in-range you must call with two values, one 	
+						  representing the beginning of a period and another for the end of the period
+							EG to get the last hour time-weigted average tick you must call it with
+							  secondsAgos[3600,0]
+				snapshotCumulativesInside(int24 tickLower, int24 tickUpper) external view returns (
+				    int56 tickCumulativeInside,
+				    uint160 secondsPerLiquidityInside,
+				    unt32 secondsInside
+				  );
+					NOTE:	Returns a snapshot of the tick cumulative, seconds per liquidity and seconds inside a tick range
+		IUniswapV3PoolImmutables
+			Summary
+				Pools state that never changes
+				These parameters are fixed for a pool forever
+			Functions
+				factory() external view returns (address);
+				token0() external view returns (address);
+				token1() external view returns (address);
+				fee() external view returns (uint24);
+				tickSpacing() external view returns (int24);
+					NOTE:	Ticks can only be used at mulitples of this value, minimum of 1 and always positive
+						EG a tickspacing of 3 means ticks can be initalized every 3rd tick, IE {...,-6,-3,0,3,6,...}
+						This value is an int24 to avoid casting even though it is always positive
+				maxLiquidityPerTick() external view returns (uint128);
+					NOTE:	The maximum amount of position liquidty that can use any tick in the range
+						This parameter is enforced per tick to prevent liquidity from overflowing a uint128 at any point
+						  and also prevents out-of-range liquidity from being used to prevent adding in-range liquidity
+						  to a pool
+		IUniswapV3PoolState
+			Summary
+				Pool state that can change
+				These methods compose the pool's state, and can change with any frequency including multiple times per TX
+			Functions
+				slot0() external view returns(
+				    uint160 sqrtPriceX96,		<- current price of pool as sqrt(token1/token0) Q64.96 value
+				    int24 tick,				<- current tick of the pool	
+				    uint16 observationIndex,		<- index of the last oracle observation
+				    uint16 observationCardinality,	<- current max number of observations stored in the pool
+				    uint16 observationCardinalityNext,	<- the next max number of observations, to be updated when reached
+				    uint8 feeProtocol,			<- protocol fee for both tokens of the pool
+				    bool unlocked			<- whether the pool is currently locked to reentrancy
+				  );
+					NOTE:	The 0th storage slot in the pool stores many values, and is exposed as a single method to
+						  save gas when accessed externally
+				feeGrowthGlobal0X128() external view returns (uint256)
+					NOTE: 	The fee growth as a Q128.128 fess of token0 collected per unit of liquidity for the entire life
+						  of the pool
+				feeGrowthGlobal1X128() external view returns (uint256)
+					NOTE: 	Same as above but for token1
+				protocolFees() external vuew returns (uint128 token0, uint128 token1)
+					NOTE:	The amounts of token0 and token1 that are owed to the protocol
+				liquidity() external view returns (uint128)
+					NOTE:	The currently in-range liquditiy available to the pool
+				ticks(int24 tick) external view returns (
+				    uint128 liquidityGross,		<- Total amount of position liquidity that uses the pool either
+									     as a tick lower or a tick upper
+				    int128 liquidityNet,		<- How much liquidity changes when the pool price crosses tick
+				    uint256 feeGrowthOutside0X128,	<- Fee growth on the other side of the tick from the current tick
+									     in token0		
+				    uint256 feeGrowthOutside1X128,	<- Fee growth on the other side of the tick from the current tick
+									     in token1
+				    int56 tickCumulativeOutside,	<- The cumulative tick value on the other side of the tick from the
+									     current tick
+				    uint160 secondsPerLiqudityOutsideX128,	<- The seconds spent per liquidity on the other side of the
+										   tick from the current tick
+				    uint32 secondsOutside,		<- The seconds spend on the other side of the tick from the current tick
+				    bool initialized			<- Set to true if the tick is initialized
+									   IE if liqiditiyGross is greater than 0, otherwise equal to false
+				  );
+				tickBitmap(int16 wordPosition) external view returns (uint256)
+					NOTE: 	Returns a 256 packed tick initalized boolean value
+						See TickBitmap for more info
+				positions(bytes32 key) external vuew returns (
+				    uint128 liquditiy,
+				    uint256 feeGrowthInside0LastX128,
+				    uint256 feeGrowthInside1LastX128,
+				    uint128 tokensOwed0,
+				    uint128 tokensOwed1
+				);
+					NOTE: Return the information about a position by the positions key
+				observations(uint256 index) external view returns (
+				    uint32 blockTimestamp,
+				    int56 tickCumulative,
+				    uint160 secondsPerLiquidityCumulativeX128,
+				    bool initialized
+				  );
+					NOTE:	Return data about a specific observation index
+						`index` is the element of the observations array to fetch
+						`initialized` returns means whether the observation has been initalized and the values are safe
+						  to be used
+libraries/
+	BitMath
+		For computing bit properties of an unsigned integer
+	FixedPoint128/96
+		For handling binary fixed point numbers (The Q_._ format)
+	FullMath
+		For 512-bit math functions
+		Facilitates mul/div that can have overflow of intermediate value without any loss of precision
+		Handles "phantom overflow" IE allows multiplication and division where an intermediate value overflows 256 bits
+	LiqudityMath
+		Math library for liquidity
+	LowGasSafeMath
+		Optimized overflow and underflow safe math operations
+		Reverts on overflow
+		Minimal gas cost
+	Oracle
+		Summary
+			Provides price and liqudidiy data useful for a wide variety of system designs
+			Instances of stored oracle data, 'observations' are collected in the oracle arary
+			Every pool is initialized with an oracle array length of 1
+			Anyone can pay SSTOREs to increase the maximum length of the oracle array (observationCardinality functions from before)
+		Functions
+			transform(
+			    Observation memory last,
+			    uint32 blockTimestamp,
+			    int24 tick,
+			    uint128 liquidity
+			) private pure returns (Observation memory)
+				NOTE:	Transforms a previous observation into a new observation, given the passage of time and the current
+					  tick and liquditiy values
+			initialize(Observation[65535] storage self, unit256 time) internal returns (-
+			    uint16 cardinality,
+			    uint16 cardinalityNext
+			  );
+				NOTE:	Initialize the oracle array by writing the first slot
+					Called once for the lifecycle of the observations array
+					`self` is the oracle array and we are getting the split array to access it immediately
+			write(
+			    Observation[65535] storage self,
+			    uint16 index,
+			    uint32 blockTimestamp,
+			    int24 tick,
+			    uint128 liquidity,
+			    uint16 cardinality,
+			    uint16 cardinalityNext,
+			) internal returns (uint16 indexUpdated, uint16 cardinalityUpdated)
+				NOTE:	Writes an oracle observation to the array
+					Writable at most once per block
+					`index` represents the most recently written element
+					`cardinality` and `index` must be tracked externally
+			grow(
+			    Observation[65535] storage self,
+			    uint16 current,
+			    uint16 next
+			) returns (uint16)
+				NOTE:	Prepares the oracle array to store up to `next` observations
+			lte(uint32 time, uint32 a, uint32 b) private pure returns (bool)
+				NOTE:	Comparater for 32-bit timestamps
+					Safe for 0 or 1 overflaows, an and b must be chronologically before or equal to time
+					Returns whether `a` is chronologically <= `b`
+			binarySearch(
+			    Observation[65535] storage self,
+			    uint32 time,
+			    uint32 target,
+			    uint16 index,
+			    uint16 cardinality
+			) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter)
+				NOTE:	Fetches the observation beforeOrAt and atOrAfter a target
+					Basically you pass it a timestamp and it gets the closest two observations on either side of `target`
+			getSurroundingObservations(
+			    Observation[65535] storage self,
+			    uint32 time,
+			    uint32 target,
+			    int24 tick,
+			    uint16 index,
+			    uint128 liquidity,
+			    uint16 cardinality
+			) private view returns (Observation memory beforeOrAt, Observation memory atOrAfter)
+				NOTE:	Seems very similar to binarySearch, actually it uses binarySearch so it looks like it's a public facing
+					  wrapper function for it
+			observeSingle(...) internal view returns (int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128)
+				NOTE:	Reverts if an observation at or bofer the desired observation timestamp does not exist
+					0 may be passed as `secondsAgo` to return the current cumulative values
+					If called with a timestamp falling between two observations, returns the counterfactual accumulator 
+					  value at exactly the timestamp between the two observation
+					Not sure what a counterfactual accumulator is tho...
+			observe(...) internal view returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativex128s)
+				NOTE:	Appears to be a batch version of above
+	Position
+		Summary
+			Positions represent an owners address' liquidity between a lower and upper tick boundary
+			Positions store additional state for tracking fees owed to the position
+		Functions
+			get(mapping(bytes32 => Info) storage self, address owner, int24 tickLower, int24 tickUpper)
+			  internal view returns (Position.Info storage position)
+				NOTE:	Returns the Info struct of a position, given an owner and a position boundaries
+			update(Info storage self, int128 liquidityDelta, uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
+			  internal;
+				NOTE: 	Credits accumulated fees to a users position
+	SafeCast
+		For safely casting between types
+	SqrtPriceMath
+		For square root of price as a Q64.96 and liqudity to compule deltas
+	SwapMath
+		Computes the result of a swap within ticks
+		Contains methods for computing the result of a swap within a single tick price range
+	TickBitmap
+		Packed tick initialized state library
+		Stores a packed mapping of tick index to its initalized state
+		The mapping uses int16 for keys since tirks are represented as int26 (2^8) values per word
+	TickMath
+		Math library for computing sqrt prices from ticks and vice versa
+		Computes sqrt price for ticks of size 1.0001 IE sqrt(1.0001^tick) as fixed point Q64.96 numbers
+		Supports prices between 2**-128 and 2**128
+	Tick
+		Contains functions for managing tick processes and relevant calculations
+	TransferHelper
+		Contains helper methods for interacting with ERC20 tokens that do not consistently return true/false
+	UnsafeMath
+		Math functions that do not check inputs or outputs
+		They don't do any underflow/overflow checks
+NoDelegateCall
+	Summary
+		Prevents delegateCall to a contract
+		Base contract that provides a modifier for preventing delegatecall to methods in a child contract
+	Functions
+		consturctor()
+			NOTE:	Stores the address of the contract on init of code as a private and immutable value
+		checkNotDelegateCall() private view;
+			NOTE: 	Ensures the the address of the caller is the same as the init value from above
+				If not then reverts
+	Modifiers
+		noDelegateCall()
+			NOTE:	Uses the function above, pretty simple

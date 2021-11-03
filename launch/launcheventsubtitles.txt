@@ -1,0 +1,1702 @@
+we all know that we're here for the
+
+launch of the security bootcamp smart
+
+contract auditing
+
+epoch zero launch
+
+uh
+
+funded by the ethereum foundation grant
+
+and uh sponsor partners consensus
+
+diligence sigma prime and trailer bits
+
+thank you all for making this happen and
+
+really a big thanks
+
+to the ethereum foundation for the grant
+
+and for the sponsored partners without
+
+which this may have taken a very
+
+different form
+
+but i think uh the biggest thanks goes
+
+to really all the participants
+
+um without whom
+
+you know this wouldn't have happened
+
+so thanks for joining guys and uh and
+
+everyone
+
+so let's get
+
+started so securium um
+
+is really very simple right it is
+
+security and ethereum are the two words
+
+put together
+
+and the idea was
+
+really to further improve the state of
+
+security on ethereum
+
+and
+
+in this case
+
+it's really application security that we
+
+are looking at so smart contact security
+
+specifically for ethereum
+
+and it's always been
+
+a primary concern
+
+and
+
+there are many many approaches to
+
+solving it many efforts and initiatives
+
+and security wanted to also play a role
+
+and
+
+you know do something uh to raise the
+
+bar to help this uh effort right so that
+
+is really
+
+the
+
+mission of security
+
+and to step back um
+
+there are
+
+you know for people coming in from
+
+security um
+
+there are many tools many different
+
+techniques that are used in security as
+
+we know
+
+but in specifically in the case of smart
+
+contracts um there are many many tools
+
+and
+
+you know a lot of the
+
+firms a lot of sponsoring partners
+
+and others have written fantastic tools
+
+our writing is being researched and
+
+being worked on
+
+but still i think it is uh you know fair
+
+to say that a significant effort of
+
+smart contract security auditing is
+
+still manual right and that's just
+
+because of where we are in uh you know
+
+in this timeline
+
+we are still very very early a lot of
+
+things are changing ethereum protocol
+
+itself is changing as we know um the
+
+languages are
+
+improving solidity which is by far the
+
+most widely used language uh there are
+
+many releases every year one almost
+
+every month or two right
+
+so
+
+there are all these tools and techniques
+
+that are trying to keep up
+
+and the one thing constant is really the
+
+manual effort right
+
+so the people who are involved in the
+
+space are
+
+trying to use some of these tools and
+
+techniques and complement their blind
+
+spots or shortcomings by using manual
+
+analysis so this is um a significant i
+
+mean this plays a very significant role
+
+in smart contract security smart contact
+
+auditing right today
+
+and that is sort of the primary focus
+
+and
+
+that sort of is a problem because as we
+
+know manual efforts don't scale very
+
+well right so they have i mean they have
+
+a very high degree of
+
+accuracy
+
+they have very low false positive rate i
+
+mean these are all typically speaking
+
+compared to the tools definitely in the
+
+web 3 space in the healing space
+
+but
+
+we
+
+don't scale as well as the tools right
+
+we're not very deterministic right
+
+and we can't really sort of uh
+
+be looking at smart contract auditing or
+
+security 24 7 365
+
+ci cd all these things that are so
+
+elegantly and efficiently done with
+
+tools are not
+
+as easy to do with
+
+manual analysis right so that is
+
+that is a challenge
+
+and the reason why it's a challenge is
+
+because of this security pyramid
+
+right
+
+so if you look at this
+
+it's fair to say that we have billions
+
+of dollars of value right
+
+on ethereum both the ethereum protocol
+
+itself and all the other protocols that
+
+are built on top of it
+
+all this value that is captured in these
+
+protocols and there are hundreds of
+
+thousands of them at this point
+
+all that responsibility for the security
+
+of those protocols is being shouldered
+
+by only hundreds of experts
+
+so this difference in magnitude is
+
+is
+
+so stark right compared to web 2
+
+for all you know for all of you who have
+
+been in the type 2 space who are still
+
+in the web 2 space in the security space
+
+this will be like uh
+
+amazing um you know
+
+a difference that you will see is that
+
+there are very few people right and
+
+understandably so who are quote-unquote
+
+experts at ethereum security
+
+and the reasons are again understandable
+
+um
+
+because in order to do security or smart
+
+contracts you need to know i mean we
+
+need to know
+
+security right and how that works and
+
+that itself there is like 40 50 years
+
+worth of
+
+research and information security a lot
+
+of which still applies to web3 to
+
+ethereum
+
+besides that we need to understand how
+
+blockchain works we need to understand
+
+specifically how gdm works we need to
+
+understand um you know we need to master
+
+solidity language
+
+not from a developer perspective but
+
+from a security perspective right we
+
+need to understand
+
+the bits and the bytes of the byte code
+
+of the higher level language and many
+
+many aspects
+
+that
+
+that play a huge role in this so that is
+
+the challenge
+
+and that is really the mission
+
+that
+
+the community is trying to address right
+
+which is to
+
+train experts train people to become
+
+security experts in this space
+
+this has to
+
+go up from hundreds to really thousands
+
+because it's not you know it's not just
+
+a smart contract
+
+security firms or teams that want to
+
+hire and work with such experts people
+
+who understand this
+
+but
+
+every protocol the thousands of
+
+protocols every one of them will very
+
+soon need a security person on their
+
+team so that they don't have to rely on
+
+a third-party firm to do security for
+
+them because that again is not uh you
+
+know it's not practical it's not
+
+scalable right so that is the magnitude
+
+of the challenge that we are looking at
+
+so it's a huge challenge but
+
+uh just like with any huge challenge
+
+it's also a huge opportunity for all of
+
+us here
+
+so that is what we are addressing with
+
+this mission
+
+so that is really the focus the primary
+
+focus of
+
+securing boot camp and smart contract
+
+security on a day for the etheleum
+
+ecosystem
+
+and again
+
+funded by the ethereum foundation grant
+
+sponsor partners without who and without
+
+all of you this would not have been
+
+possible so thank you so that is really
+
+the motivation and the background for
+
+both securium as well as
+
+the need for
+
+a boot camp
+
+such as the one that is going to start
+
+all right um so let's step back and sort
+
+of
+
+recall why we are doing this again right
+
+we're here to learn specifically about
+
+smart content security auditing
+
+for for folks for people who are
+
+interested in smart contact development
+
+this might be interesting because they
+
+can increase their security jobs their
+
+security understanding but the focus of
+
+this boot camp is really really going to
+
+be on
+
+security auditing right and we'll talk
+
+more about
+
+the the difference in uh the mindset and
+
+difference in so many things
+
+that apply specifically to smart
+
+contract auditing that necessarily do
+
+not apply to smart contact development
+
+so that i think is is something that i
+
+would like to stress upon for the
+
+duration and
+
+this is also about helping people
+
+make the leap from web 2 to web 3.
+
+and this this is obvious we talked about
+
+this
+
+i want uh
+
+again you know rehash it
+
+and this is also about helping people
+
+who are developers in the web 3 space
+
+change their development or
+
+you know add to their development
+
+mindset at security
+
+mindset to that
+
+frame of mind right and this again is is
+
+a big mindset that um you know that you
+
+will see as we go through the boot camp
+
+because uh instead of looking at more
+
+efficient ways of writing or developing
+
+code we'll be looking at things that
+
+might actually uh go against it right
+
+that hey
+
+maybe this is more efficient but this is
+
+not
+
+a best practice from a security
+
+perspective so things like that so that
+
+mindset change is
+
+something critical and hopefully we will
+
+talk more about that switch as well
+
+and the last two points are things we
+
+talked about so the higher order goal
+
+here is to really scale ethereum
+
+security and to grow this uh vibrant
+
+community so for folks for people who
+
+are uh sort of getting into the space
+
+now uh it's it's a really an amazing
+
+place to be in uh very helpful all
+
+around um so we all want to help each
+
+other and we all want to sort of grow
+
+together right so yeah welcome uh
+
+everyone to this community
+
+and let's get into some of the specifics
+
+um this is again this nothing here
+
+should be very new so this is a
+
+three-month boot camp starting today
+
+october
+
+and uh going on till end of december and
+
+uh even after that the details of which
+
+will be shared uh later on
+
+and this is
+
+i mean uh who doesn't love free so this
+
+is a free boot camp uh again thanks to
+
+the ethereum foundation and the sponsors
+
+for making that possible so uh that was
+
+uh you know one of the biggest reasons
+
+why we were able to accommodate um as
+
+many people as we are able to do at this
+
+point in time so the focus again is
+
+ethereum's about contact security
+
+auditing right
+
+and this is uh
+
+goes back again to the ethereum culture
+
+of being very open
+
+the boot camp is
+
+being opened
+
+is open will be open to
+
+students to professionals to beginners
+
+to experts
+
+um and finally speaking i i don't think
+
+there are any uh you know expert sort of
+
+uh
+
+set in stone here because this space is
+
+moving you know so fast that you take a
+
+weekend off and uh you know you're
+
+already uh two days or two months behind
+
+uh all the things that have happened
+
+right so
+
+uh everyone is learning here so i don't
+
+think there's uh there are people who
+
+will spend more time so maybe have a bit
+
+more context so
+
+feel free
+
+to not think of uh you know let's not
+
+think of anyone as a beginner or an
+
+expert in this case
+
+and you should also be conscious of
+
+people joining
+
+part-time and full-time there's a boot
+
+camp there is an expectation of spending
+
+quite a bit of time and effort but we
+
+wanted to be open to people who can only
+
+afford a few hours a day
+
+so um so it does it has been done and i
+
+believe there are many of us who are
+
+doing this uh on nights and weekends
+
+right so um
+
+you know everyone as well
+
+and this is again web 2 and web 3 so
+
+we'll see people who have talked to you
+
+about ethereum which is fine you'll see
+
+people who are experts in um well who
+
+spent a lot of time in bethlehem so for
+
+such people please you know help out
+
+others is a sincere request
+
+also um
+
+there will be some of us who understand
+
+security more and there will be people
+
+who understand programming in general
+
+you know we are programmed a good
+
+programming in terms of languages uh
+
+what have you right so really an open
+
+culture open to everyone so let's please
+
+be accommodating um you know on the
+
+discord channel to everyone who comes in
+
+and might seem to ask a question that is
+
+obvious to some of us but uh really i
+
+mean you know it could be a very genuine
+
+question that they're not uh
+
+familiar with so that is a sincere
+
+interest
+
+and how are we going to do this um there
+
+is uh there are two phases um so i think
+
+in the interest of time i promised
+
+to
+
+finish this very soon but um let's run
+
+past this
+
+one phase october november readings
+
+videos quizzes and more
+
+10 to 20 hours a week is sort of uh
+
+minimum requirement
+
+uh in in my mind
+
+just in terms of
+
+you know if you want to do well if you
+
+want to understand well uh learn well i
+
+think that is
+
+the number of hours that
+
+one might have to put in uh but if you
+
+you know if you can spend only a
+
+hours than than what is required then
+
+the structure of the boot camp is such
+
+that uh you know you will be able to
+
+make up later on right so
+
+i'll talk more about it when we get to
+
+the quizzes
+
+then uh december is going to be ordered
+
+readiness i mean this is where uh
+
+rubber meets the road uh if you will so
+
+all the learnings for the first two
+
+months in october and november
+
+we all well whoever gets selected based
+
+on the quizzes will get into the audit
+
+readiness phase and they will get to
+
+evaluate the projects and for those who
+
+could not make it there will be other
+
+opportunities after that right so the
+
+details of which i'll be sharing later
+
+on
+
+um more details
+
+so this i think is uh interesting
+
+there are eight weeks in the learn phase
+
+and every week there will be one article
+
+that will be shared on substance right
+
+and if you don't know what this uh you
+
+know what some of these mean um
+
+i will be sharing more details on
+
+discord uh so
+
+nothing to worry about that
+
+and
+
+that article
+
+uh will be accompanied by five videos
+
+that will be shared on youtube right
+
+so both sub stack as well as you know
+
+the article on subset and the youtube
+
+videos are going to be publicly
+
+available to everyone who is uh you know
+
+who's part of the boot camp or not
+
+doesn't matter this will be publicly
+
+available that is again one of the goals
+
+is to make learning accessible to
+
+everyone um
+
+so that is a good thing
+
+and what will not be available to
+
+everyone will be available only to those
+
+who have registered for this boot camp
+
+are the quizzes
+
+so every week there's going to be one
+
+quiz which will be
+
+shared on the class marker
+
+platform and this is uh
+
+you know something that you should be
+
+familiar with
+
+there was a readiness quiz uh sort of
+
+shared a week earlier
+
+so this um i mean
+
+we can talk more about that later but
+
+these are sort of the platforms that
+
+we'll be using for this bootcamp right
+
+and all these links will be sent out in
+
+an email
+
+every week
+
+approximately well this will be sunday
+
+uh to me sir sending out um but
+
+depending on where you are it might be
+
+saturday night or it might be an early
+
+monday but you can expect to get one
+
+email
+
+every week
+
+that gives links to all these three
+
+things with an article to the five
+
+videos and to the quiz
+
+so i would recommend
+
+uh you know
+
+not skipping the article and just uh
+
+watching the videos i would recommend uh
+
+you know
+
+doing both in parallel uh if you can and
+
+the five videos
+
+are sort of split out uh very neatly um
+
+and i'll share more details on the
+
+discord in the interest of time
+
+so
+
+for people who are
+
+you know
+
+who learn visually
+
+or by listening uh looking at videos
+
+feel free to watch the videos but also
+
+simultaneously look at the article for
+
+people like me for example i prefer
+
+reading articles um so i i would
+
+recommend reading that article and
+
+reading is really really good because as
+
+a security smart contact security
+
+auditor you are going to be reading a
+
+lot a lot of code right so that is
+
+an extra benefit of
+
+or a side effect of this
+
+so any questions of this
+
+on any of these details please feel free
+
+to ask on the questions channel on
+
+discord
+
+and i'll jump ahead
+
+so
+
+chris i think
+
+you know all of us or
+
+many of us are sort of uh
+
+excited about the quizzes just some of
+
+us are worried about the quiz but um
+
+let's talk about it
+
+every quiz
+
+is going to have either 32 questions
+
+16 questions or eight questions right
+
+and there will be eight quizzes one
+
+every week some some of the initial ones
+
+will have 32
+
+um because
+
+it just makes sense and later on when it
+
+when every question needs more time
+
+what i've done what we have done is
+
+reduce the number of questions but all
+
+quizzes
+
+have
+
+a fixed time of 16 minutes so if you see
+
+this pattern there's all powers of two
+
+this is sort of a fun way to break away
+
+from the decimal system and deal with
+
+binary which is uh really you know the
+
+bits and bytes that we're going to be
+
+dealing with
+
+so 16 minutes for a request 32 questions
+
+or 16 or eight and you'll know this um
+
+you know in the email there'll be a lot
+
+of uh there will be any surprises
+
+hopefully
+
+and for every quiz for taking the quiz
+
+on the class marker platform
+
+we will need an access code
+
+which has been shared with all of you in
+
+an email right so please
+
+uh keep that access code handy because
+
+you will need to enter that that's the
+
+only way you know you will be able to
+
+enter into the quiz platform and only
+
+way that i will know who's because this
+
+is
+
+then you will be asked for your discord
+
+handle so if there is somebody on this
+
+call who still uh has not joined the
+
+discord server for securian please
+
+please join that you will uh i mean it
+
+will make our lives easier if there are
+
+any sort of troubleshooting uh to be
+
+done and you will also be requested to
+
+enter the email id that you registered
+
+or signed up for this bootcamp right all
+
+these three things will
+
+be required for every quest so please
+
+keep them handy
+
+quizzes are single attempt
+
+so you get only one chance to
+
+do the quiz right there is no pause and
+
+resume right after a few questions or
+
+whatever
+
+we won't be allowed to pause the quiz go
+
+back take a break and uh you know resume
+
+it later that is not allowed
+
+so these two things please keep in mind
+
+so please
+
+start the quiz
+
+only once you have uh you know once you
+
+walk through the content the article in
+
+the videos once you are
+
+fairly certain that
+
+you know that you're ready for the quiz
+
+and make sure that your internet
+
+connection whatever else your laptops
+
+everything else is in top shape because
+
+uh
+
+this
+
+is
+
+you know they won't uh it's not
+
+practical
+
+enough to make exceptions
+
+because
+
+um it's well
+
+you you probably understand that right
+
+we are
+
+going to have hundreds 500 or a thousand
+
+people doing this and there is really no
+
+way to scale for myself to scale myself
+
+to clone myself to
+
+to do any of that right
+
+so please please
+
+remember this single attempt no pause
+
+resume take the quiz
+
+it's not i mean the quiz is going to be
+
+very straightforward so no stress but
+
+just make sure these two things are
+
+remembered
+
+and every quiz
+
+will have two weeks time to finish right
+
+so if you get the email on sunday
+
+we have two weeks
+
+to
+
+um
+
+read the content to you know to sort of
+
+master it and then take the quiz
+
+but ideally try to finish it in that one
+
+week because the following sunday you're
+
+gonna get another email with the next
+
+week's content and a second quiz right
+
+or the third quiz so
+
+just make sure you pace yourself but the
+
+two weeks time was uh
+
+really to
+
+give a bit of grace period uh for
+
+you know somebody who is working for
+
+somebody who's traveling you know all
+
+the other interruptions uh that we have
+
+in life right so that is really um the
+
+idea of quizzes and again
+
+no exceptions please
+
+all right some more
+
+details on the quiz
+
+every question and
+
+i've tried
+
+we have tried to keep this very
+
+straightforward
+
+every question is is a multiple choice
+
+it will have
+
+i mean it's a multiple choice there are
+
+no
+
+you know answers to be written or typed
+
+out because it's not practical for uh
+
+for me to really uh look at so many
+
+answers and evaluate it so they're all
+
+multiple choice however
+
+we also want to make it
+
+you know you want to keep the bar high
+
+so that
+
+people really master the content before
+
+they can
+
+you know before they can ace the quizzes
+
+right so these multiple choice questions
+
+have four check boxes they are not radio
+
+buttons so it's not like every question
+
+has only one answer that potentially
+
+allows somebody to guess and you know
+
+get it right there are four check boxes
+
+which means that
+
+every question can have
+
+one or more correct answers so there can
+
+be one correct answer two three or all
+
+four could be correct and
+
+you get
+
+one point for answering your question
+
+only if you answer all the correct
+
+answers and only the correct answers
+
+so example
+
+you have choices a b c and d and let's
+
+say that the correct answers are b and d
+
+right
+
+so you will get one point only if you
+
+choose b and d as the correct answers in
+
+the check boxes if you choose
+
+a b and
+
+um sorry what did i say uh yeah b and c
+
+right so b and c are the correct answers
+
+so if you choose a b and c
+
+you will get zero points because your
+
+chosen a which is not one of the correct
+
+answers if you choose only b you'll
+
+still get zero points there are no
+
+partial points because both b and c are
+
+correct right so
+
+one question one point
+
+only if you get all and only the correct
+
+answers and there are no partial points
+
+there are no negative points you get a
+
+question wrong
+
+you get zero there are no negative
+
+points
+
+so the questions are by design right
+
+tricky
+
+what we have tried to do is to make them
+
+as unambiguous as possible
+
+however
+
+we want to keep them tricky to make sure
+
+that you understand we understand the
+
+nuances of ethereum or solidity security
+
+anything that is being tested upon
+
+yeah
+
+so please read all the questions very
+
+carefully there are some questions that
+
+might ask you
+
+uh things like which of the following
+
+are true
+
+there might be some questions that ask
+
+you which are which are the following
+
+are false
+
+so
+
+make sure you see the true and false and
+
+answer appropriately
+
+so this is something we will try to
+
+reduce confusion as much as possible
+
+but on the flip side
+
+as auditors
+
+we need to pay attention to every letter
+
+to every word right and
+
+there will be
+
+uh you know the time bounded aspect of
+
+yes this is 16 minutes so there will be
+
+the time pressure but so is auditing and
+
+jocelyn who's here we'll talk more about
+
+that at the end of this call but
+
+this is you know these quizzes are also
+
+reflective of uh sort of the life of an
+
+auditor right it is going to be
+
+time-bound it is going to be tricky it
+
+is going to be ambiguous it is not going
+
+to be crystal clear because if that were
+
+to be the case then security would be
+
+very easy but that is not the case yeah
+
+so please read carefully
+
+and
+
+again in the interest of
+
+people taking the quizzes at different
+
+points different time zones at different
+
+times
+
+these quizzes
+
+as soon as you finish a quiz
+
+you will not know the correct answers
+
+what will happen is you will receive an
+
+email from class marker to the
+
+registered email id you will receive an
+
+email that tells
+
+you how many points you're scored right
+
+out of 32 questions 16 or 8. how many
+
+points
+
+so that is all you will know
+
+and at the end of two weeks
+
+from when it was shared once the quiz
+
+closes at that point
+
+i will be sharing the correct answers
+
+and at that point
+
+you know we would really encourage
+
+everyone to discuss the answers to break
+
+it down uh to see why you know why it is
+
+uh it makes sense or maybe there are uh
+
+questions and answers that are not very
+
+clear
+
+so this is something hopefully we can
+
+get right in the second iteration right
+
+so we are going through a lot of effort
+
+and again i would like to call out
+
+jocelyn and
+
+some of the other folks who have helped
+
+with
+
+shaping up these quizzes to keep them
+
+unambiguous as much as possible but
+
+really to raise the bar so that they
+
+really test all of us and make sure that
+
+we have mastered uh the content as much
+
+as we can
+
+so i think this is probably the slide
+
+that i spent the most time on but that
+
+is because this is
+
+going to be critical in determining who
+
+will make it to the
+
+audit readiness phase which i know that
+
+a lot of you are very uh excited about
+
+so i think
+
+with that we
+
+have at least i have covered a lot of
+
+what i wanted to talk about
+
+so
+
+again welcome to the security security
+
+boot camp on smart contract security
+
+auditing this is really about ethereum
+
+about educating ourselves about
+
+evaluating the security of the various
+
+things that we see in this space so
+
+let's yes let us learn let's try to
+
+master the content let's uh learn from
+
+each other let's ask a lot of questions
+
+at the same time let's also be
+
+considerate of uh you know other
+
+people's time and effort and the
+
+channels of communication so please uh
+
+look at the channels see if your
+
+questions have already been asked
+
+discard now probably not
+
+the best channel but really uh
+
+all we have so look up maybe at some
+
+point we'll have an faq but see if your
+
+questions have been asked
+
+join jump into those discussions create
+
+threads
+
+and let's let's all learn together and
+
+more importantly
+
+because we are coming in from so many
+
+different backgrounds so many different
+
+contexts with different expertise
+
+different experience which is what makes
+
+this community you know which will make
+
+this community really
+
+exciting is
+
+our intention and our efforts in helping
+
+others learn so i would really really
+
+request and encourage everybody to help
+
+others learn
+
+there might be things that are very
+
+obvious straightforward to
+
+me that might you know be really hard
+
+for someone else so please be
+
+open-minded please be generous with your
+
+time your words and uh yeah at the end
+
+of the day
+
+uh let's let's not get too stressed out
+
+there will be many opportunities this is
+
+just the beginning uh there is you know
+
+huge
+
+uh you know cute challenge a lot of
+
+opportunities and let's let's have
+
+fun in learning right so that is that is
+
+i think really critical
+
+and i've been told that
+
+we can't have fun
+
+especially at a launch event like this
+
+without
+
+you know having a pro-app
+
+so
+
+yes we do have a poet and for people who
+
+know what a product is um
+
+you know
+
+there will be a pro-app that should hit
+
+your email inboxes
+
+maybe in 12 to 18 hours and for people
+
+who aren't aware it is
+
+think of it as a badge
+
+it's a proof of attendance protocol it
+
+shows i mean it shows on the blockchain
+
+like an nfp that in this case you did
+
+attend this um
+
+you know this launch event and in this
+
+case again
+
+we are being open you're not restricting
+
+or sharing your code right now it will
+
+be in your email
+
+and um uh you know
+
+it will also be emailed inboxes of
+
+people who could not join this meeting
+
+and uh i heard a few more things people
+
+are gonna try to get in uh to this
+
+meeting after uh i stopped
+
+having a chance to admit them in so
+
+everyone who is registered
+
+look take a look at your email inboxes
+
+uh give it you know give it today and
+
+you will have a po app called
+
+all right so i think that officially
+
+qualifies us as uh having fun
+
+uh with the app
+
+so uh so yeah so please stay tuned there
+
+is uh the twitter handles here
+
+there is uh
+
+i mean twitter again we will use well i
+
+will use it sparingly
+
+only for official public announcements
+
+but
+
+really the main
+
+sort of
+
+watering hole if you will
+
+where all of us
+
+are already there all of us
+
+need to be there and a lot of people who
+
+are even outside of the boot camp um
+
+have joined the discord server so please
+
+please join the discord server which is
+
+where
+
+you know all of us are going to be
+
+learning for the next three months and
+
+beyond so with that yes let's uh let's
+
+go
+

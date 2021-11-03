@@ -1,0 +1,31 @@
+The ideas is to improve the state of security within ethereum
+The focus is on application security (smart contracts) in the ethereum network
+A lot of smart contract auditing is manual
+	Manual efforts don't scale very well
+	The objective of this is to start scaling ethereum security
+A lot happens very quickly in the etherum space
+Need to spend a lot of time on this
+	10-20 hours weekly is minimun requirement
+October/November is the learning phase
+December is the readiness phase where you get selected
+8 weeks in the learn phase
+Every week there is one article that will be shared
+	That article will be accompanies by five videos on youtube
+Don't skip the articles
+You get an email each week with the article
+Quiz info
+	Each quiz will have 32 or 16 or 8 questions
+	One quiz every week
+	So there will be 8 quizzes total (because 8 weeks)
+	All quizzes have a fixed time of 16 minutes
+	Can't take break, pause or anything like that for the quiz
+	From the time a quiz is released you have two weeks, but try to finish it in one
+	Every question is a multiple choice
+	They are check box style, not radio style
+	There are no partial marks
+		If there are 4 choices (a,b,c,d)
+		Assume (b,c) are correct
+		If you choose (b,c) you get one point
+		Anything else other than selecting ALL the correct choices gets you a mark of zero
+	There are no negative points
+	Because of time zones, the correct answers are released after the 2 week window for a quiz

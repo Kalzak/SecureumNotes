@@ -1,0 +1,27 @@
+Content
+	Article
+		https://secureum.substack.com/p/security-pitfalls-and-best-practices-101
+	Youtube
+		https://youtu.be/OOzyoaYIw2k
+		https://youtu.be/fgXuHaZDenU
+		https://youtu.be/YVewx1xVROE
+		https://youtu.be/byA3MLLiKMM
+		https://youtu.be/vyWLO5Dlg50
+Quiz
+	Link
+		https://www.classmarker.com/online-test/start/?quiz=nm76162ceecc348f
+	Details
+		16 questions
+		16 minutes
+Assignments
+	Explore SWC Registry list and test cases
+		https://swcregistry.io/
+	Watch
+		https://www.youtube.com/watch?v=72K57I9yvyI
+		https://www.youtube.com/watch?v=L2DRC6PjTgk
+		https://www.youtube.com/watch?v=Sc5fZ-Wprx8
+	Attempt
+		https://capturetheether.com/
+My own ideas
+	Read
+		https://github.com/crytic/slither/wiki/Detector-Documentation

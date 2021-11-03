@@ -1,0 +1,109 @@
+EVM
+	Stack based architecture
+	All in-memory values on stack
+	Word size is 256-bits (mainly to facilitate native hashing and elliptic curve operations)
+	Has several addressable data components
+		An immutable program called ROM, loaded with bytecode of the smart contract to be executed
+		A volatile memory, with every location initialized to zero
+		A permanent storage that is part of the Ethereum state (also initialized to zero)
+Ethereum state
+	The job of the EVM is to update the Ethereum state by computing valid state transitions as a result of a smart contract
+	  code execution
+	At top level there is the Ethereum 'world' state
+		World state is a mapping of Ethereum addresses (160-bit values) to accounts
+		Each Ethereum address represents an account comprising...
+			An ether balance (in wei)
+			Nonce
+				If EOA, num TXs
+				IF CA, num contracts created
+			Accounts storage (permanent data store, only used by CAs)
+			Accounts program code (Only CAs)
+			NOTE: EOA will always have no code and an empty storage
+	When a TX results in smart contract code execution...
+		EVM is instantiated with all relevant information needed related to the current block being created and TX happening
+		EVMs program code ROM is loaded with the code from the contract account being called
+		Program counter is set to zero
+		Storage is loaded from the contracts accounts storage
+		Memory is set to all zeroes
+		All block and environment variables are set
+	Note that since smart contracts can effectively initiates TXs (actually messages, when they call other SC functions), code 
+	  execution is a recursive process.
+	One contract can call another resulting in another EVM being instantiated around the new target of the call
+	Each instantiation has...
+		World state initialized from the sandbox of the EVM at the level above
+		A specified amount of gas for its gas supply (not exceeding the level above of course)
+Contract deployment code
+	In order to create a new contract, a special TX is needed that...
+		The recipient of the TX is 0x0
+		The data field is set to the contracts 'initiation' code
+			When such a contract creation TX is processed, the code for the new CA is NOT the code in the data field 
+			  of the TX
+			Instead an EVM in instantiated with the code in the data field of the TX loaded into its program code ROM
+				The output of the execution of that deployment code is taken as the code for the new CA
+			The reason for this is so that contracts can be programatically initialized
+				EG: Can send ether to the contract and stuff beforehand and then return the bytecode
+	When compiling a contract offline (EG: solc) you either get 
+		Deployment bytecode
+			Used for every aspect of the initialization of a new CA
+			Includes the runtime bytecods as well as the initialization stuff
+		Runtime bytecode
+			Exactly what you would loaded into EVM when the new contract itself is called
+			IE: Exactly what you would see on etherscan
+Disassembling bytecode
+	Function identifiers
+		Each function is identified by the first 4 bytes of its Keccak-256 hash
+			Rememeber 1 bytes holds 2 hex values
+			Therefore 4 bytes = 8 hex values
+			EG: A valid function identifier would be 0x3a5b2c5f
+		The hash is done of the function name, brackets, and datatypes (but not names or spaces)
+			function mathThingy(uint256 num1, uint64 num2, uint16 num3)
+			becomes...
+			mathThingy(uint256,uint64,uint16)
+Gas	
+	Every computational step costs gas
+	Gas cost examples
+		Adding two numbers costs 3 gas
+		Calculating Keccak-256 hash costs 30 gas + 6 gas for each 256-bits of data being hashed
+		Sending a TX costs 21000 gas
+	It's a buffer between the volatile price of Ethereum and a reward to the miners for the work on the block
+	Also acts as a defense against denial of service	
+Gas accounting during execution
+	Every opcode that is executed has a cost in gas
+	Before each operation a check is run to see if there is enough remaining gas
+	If not enough gas, then execution is halted and TX is reverted
+	IF EVM reaches end successfully then the miner gets the gas fees
+		minerFee = gasCost * gasPrice
+	Remaining gas is refunded to sender in the form of ether
+Gas accounting considerations
+	The relative gas costs of the various operations that can be performed by the EVM have been carefully chosen to best 
+	  protect the Ethereum blockchain from attack
+	More computationally expensive operations cost more gas
+		SHA3 is 10x more expensive (30 gas) than ADD operation (3 gas)
+		Some operations such as EXP require an additional payment based on the size of the operand
+	There is also gas cost to use EVM memory and for storing data in a contract's on-chain storage
+Gas cost VS gas price
+	Gas cost is the number of units of gas required to perform a particular operation
+	Gas price is the amount of ether you ware willing to pay per unit of gas when you send you TX to the Ethereum network
+Negative gas costs
+	Ethereum encourages the deletion of used storage variables and accounts by refunding some of the gas used during 
+	  contract execution
+	There are two operations in the EVM with negative gas costs
+		Deleting a contract (SELFDESTRUCT) is worth a refund of 24000 gas
+		Changing a storage address from a nonzero value to zero (SSTORE[x] = 0) is worth a refund of 15000 gas
+	To avoid exploitation of the refund mechanism, the maximum refund for a TX is set to half the total amount of gas used
+	  (rounded down)
+Block gas limit
+	Is the maximum amount of gas that may be consumed by all the TXs in a block
+		Constrains how many TXs can be in one block
+	Block gas limit is currently 8million gas (this may be outdated)
+	This means that around 380 basic TXs (each consuming 21000 gas) could fit into a block
+Who decides the block gas limit
+	The miners on the network collectively decide the block gas limit
+	Individuals who want to mine on the Ethereum network use a mining program such as Ethminer which connects to a Geth or Parity
+	  Ethereum client
+	The Ethereum protocol has a built-in mechanism where miners can vote on the gas limit so capacity can be increased/decreased
+	  is subsequent blocks
+	The miner of a block can vote teh adjust the block size limit by a factor of 1/1024 (0.0976%) in either direction
+		This results in an adjustable block size based on the needs of the network at the time
+	This mechanism is coupled with a default mining strategy where miners vote on a gas limit that is at least 4.7 million gas
+	  but which targets a value of 150% of the average of recent total gas usage per block (using a 1024-block EMA)

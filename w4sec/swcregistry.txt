@@ -1,0 +1,110 @@
+SWC-100
+	Title
+		Function default visibility
+	Description
+		Functions that do not have a function visibility type specified are `public` by default
+		This can lead to a vuln if a developer forgets to set the visibility for a function and a user takes advantage
+SWC-101
+	Title
+		Integer overflow and underflow
+	Description
+		When an arithmetic function reaches the max or min size of its type and goes over which wraps around
+SWC-102
+	Title
+		Outdated compiler version
+	Description
+		Using and outdated compiler can be problematic especially if there are disclosed buys an issues that affect that version
+SWC-103
+	Title
+		Floating pragma
+	Description
+		Contracts should be deployed with the same compiler version and flags that they have been tested with thoroughly
+		Locking the pragma helps to ensure that contracts do not accidentally get deployed using EG an outdated compiler
+SWC-104
+	Title
+		Unchecked call return value
+	Description
+		The return value of a message call is not checked
+		Execution will resume even if the called contract throws an exception
+		If the call fails accidentally or an attacker forces the call to fail, this may cause unexpected behaviour in the 
+		  subsequent program logic
+SWC-105
+	Title
+		Unprotected Ether Withdrawal
+	Description
+		Due to missing or insufficient access controls, malicious parties can withdraw some or all Ether from the CA
+		This bug is sometimes caused by 
+			Unintentionally exposing initialization functions
+			Wrongly naming a function intended to be a constructor, and anyone can 'initialize' the contract again
+SWC-106
+	Title
+		Unprotected SELFDESTRUCT Instruction
+	Description
+		Due to missing or insufficient access controls, malicious parties can self-destruct the contract
+SWC-107
+	Title
+		Reentrancy
+	Description
+		One of the major dangers of calling external contracts is that they can take over the control flow
+		In the reentrancy attack (aka recursive call attack), a malicious contract calls back into the calling contract before
+		  the first invocation of the function is finished
+		This may cause the different invocations of the function to interact in undesirable ways
+SWC-108
+	Title
+		State Variable Default Visibility
+	Description
+		Labeling the visibility explicitly makes it easier to catch incorrect assumptions about who can access the variable
+SWC-109
+	Title
+		Uninitialized Storage Pointer
+	Description
+		Uninitialized local storage variables can point to unexpected storage locations in the contract, which can lead to 
+		  intentional or unintentional vulnerabilities
+SWC-110
+	Title
+		Assert violation
+	Description
+		The Solidity `assert()` function is meant to assert invariants
+		Properly functioning code should never reach a failing assert statement
+		A reachable assertion can bean one of two things
+			1
+				A bug exists in the contract that allows it to enter an invalid state
+			2
+				The `assert` statement is used incorrectly, EG to validate inputs
+SWC-111
+	Title
+		Use of Deprecated Solidity Functions
+	Description
+		Several functions and operators in Solidity are deprecated
+		Using them loads to reduced code quality
+		With new major versions of the Solidity compiler, deprecated functions and operators may result in side effects
+SWC-112
+	Title
+		Delegatecall to Untrusted Callee
+	Description
+		There exists a special variant of a message call, named `delegatecall` which is identical to a message call apart from
+		  the fact that the code at the target address is executed in the context of the calling contract and `msg.sender`
+		  and `msg.value` do not change their values
+		This allows a smart contract to dynamically load code from a different address at runtime
+		Storage, current address and balance still refer to a calling contract
+		Calling into untrusted contracts is very dangerous, as the code at the target address can change any storage values
+		  of the caller and has full control over the caller's balance
+SWC-113
+	Title
+		DoS with Failed Call
+	Description
+		External calls can fail accidentally or deliberately, which can cause a DoS condition in the contract
+		To minimize the damage caused by such failures, it is better to isolate each external call into its own TX that can be
+		  initiated by the recipient of the call
+		This is especially relevant for payments, where it is better to let users withdraw funds rather than push funds to them
+		  automatically (this also reduces the change of problems with gas limit)
+SWC-114
+	Title
+		TX Order Dependence
+	Description
+		Basically don't have your code depend or the order of TXs cause it isn't necessarily always gonna be the right order
+SWC-115
+	Title
+		Authorization through tx.origin
+	Description
+		`tx.origin` is a global variable in Solidity which returns the address of the account that 

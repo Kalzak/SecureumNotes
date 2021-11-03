@@ -1,0 +1,57 @@
+State variables
+	_balances			address => uint256
+	_totalSupply			address => mapping(address => uint256)
+	_name				string
+	_symbol				string
+	
+Functions
+	name				returns _name
+	symbol				returns _symbol
+	decimals			returns number of decimals used for one token
+					  EG if return is `2` then a balance of `505` tokens should be displayed to user as `5.05`
+	totalSupply			returns _totalSupply
+	balanceOf			returns balance of an address
+	transfer			sends `amount` tokens to any address except `0x0`
+					  sender must have at least `amount` tokens in their balance
+	allowance			returns remaining number of tokens that `spender` will be able to spend on behalf of `owner`
+	approve				sets `amount` as the allowance of `spender` over the callers tokens
+	transferFrom			moves `amount` tokens from `sender` to `recipient` using the allowance mechanism
+					  `amount` is then deducted from the callers allowance
+	increaseAllowance		an alternative to {approve} that increments the balance rather than setting it
+					  this was introduced to avoid a double spent security flaw on unfortunate TX layering
+	decreaseAllowance		an alternative to {approve} that decrements the balance rather than setting it
+					  this was introduced to avoid a double spent security flaw on unfortunate TX layering
+	_transfer			moves `amount` of tokens from `sender` to `recipient`
+					  is an internal function equivalent to {transfer}
+	_mint				creates `amount` tokens and assigns them to `account`
+					  increases the total supply
+					  emits a {Transfer} event
+					  `account` cannot be the zero address
+	_burn				destroys `amount` tokens from `account` reducing the totaly supply
+					  emits a {Transfer} event
+	_approve			sets `amount` as the allowance of `spender` over `owner`'s tokens
+					  emits an {Approval} event
+	_beforeTokenTransfer		hook that is called before any transfer of tokens (including minting and burning)
+					  No code is here by default, but devs can add their own functionality
+	_afterTokenTransfer		hook that is called after any transfer of tokens (including minting and burning)
+					  No code is here by default, but devs can add their awn functionality
+Events
+	Transfer			emitted when `value` tokens are moved from one account (`from`) to another (`to`)
+	Approval			emitted when the allowance of a `spender` for an `owner` is set by a call to {approve}
+					  `value` is the now allowance
+
+Other stuff and a bit more of a breakdown
+	IERC20 is the interface all ERC20 implementations should conform to
+	IERC20Metadata
+		The extended ERC20 interface including the `name`, `symbol`, and `decimals` functions
+	ERC20 is the implementation of IERC20 with functional code
+		This also has the IERC20Metadata implemented with functional code too
+	There are multiple custom extensions including
+		ERC20Burnable		destruction of own tokens
+		ERC20Capped		enforcement of a cap to the total supply when minting tokens
+		ERC20Pausable		ability to pause token transfers
+		ERC20Snapshot		efficient storage of past token balances to be later queries at any point in time
+		ERC20Permit		gasless approval of token (standardized as ERC2612)
+		ERC20FlashMint		token level uspport for flash loans through the minting and burning of ephemeral tokens
+			VERY COOL VERY COOL VERY COOL
+			

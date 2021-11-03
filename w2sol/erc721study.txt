@@ -1,0 +1,85 @@
+Understanding ERC165
+	Simple summary
+		Creates a standard method to publish and detect what interfaces a smart contract implements
+	It covers
+		How interfaces are identified
+		How a contract will public the interfaces in implements
+		How to detect if a contract implements ERC165
+		How to detect if a contract implements any given interface
+	Motivation
+		For some 'standard interfaces' (EG ERC20) it is sometimes useful to query whether a contract supports
+		  the interface and if yes, which version of the interface, in order to adapt the way in which the contract is to be
+		  interacted with
+	Specification
+		An `interface` is a set of function selectors as defined by the Ethereum ABI
+		This is a subset of Solidity's concept of interfaces
+		The interface identifier is the XOR of all function selectors in the interface
+		Code example
+			> pragma solidity ^0.4.20;
+			> 
+			> interface Solidity101 {
+    			>	function hello() external pure;
+    			> 	function world(int) external pure;
+			> }
+			> 
+			> contract Selector {
+    			> 	function calculateSelector() public pure returns (bytes4) {
+        		> 		Solidity101 i;
+        		> 		return i.hello.selector ^ i.world.selector;
+    			> 	}
+			> }
+			NOTE: Interfaces do not permit optional functions, therefore, the interface identity will not include them
+		Contracts can output the interfaces they support by having a function that accepts an interface identifier
+			Returns true if accepts, else false
+		
+Understanding ERC721 ---------------------------------------------------------------------------
+
+State variables
+	_name				name of token
+	_symbol				token symbol
+	_owners				uint256 => address (mapping from token ID to owner address)
+	_balances			address => uint256 (mapping owner address to token count)
+	_tokenApprovals			uint256 => address (mapping from tokenID to approved addresses)
+	_operatorApprovals		address => mapping(address => bool) (mapping from owner to operator approvals)
+Functions
+	constructor			Initalizes the contract by setting a `name` and a `symbol`
+	supportsInterface		See <Understanding ERC165>
+	balanceOf			Returns number of torkens in `owner`'s account
+	ownerOf				Returns the owner of `tokenId`
+	name				Returns the token collection name (part if ERC721Interface)
+	symbol				Returns the token collection symbol (part if ERC721Interface)
+	tokenURI			Returns the Uniform Resource Identifier (URI) for `tokenId` token (part if ERC721Interface)
+	_baseURI			Base URI for computing {tokenURI}
+					  If set, the resulting URI for each token will be the concanetation of the `baseURI` and the
+					    `tokenID`
+	approve				Gives permission to `to` to transfer `tokenId` token to another account
+					  Approval is cleared with token is transferred
+	getApproved			Returns the account approved for `tokenId` token
+	setApprovalForAll		Approve of remove `operator` as an operator for the caller
+	isApprovedForAll		Returns if the `operator` is allowed to manage all of the assets of `owner`
+	transferFrom			Safely transfers `tokenId` token from `from` to `to`
+	safeTransferFrom		Safely transfers `tokenId` token from `from` to `to`
+	safeTransferFrom		Safely transfers `tokenId` token from `from` to `to` and also accepts `data` to be emitted
+	_safeTransfer			Safely transfers `tokenId` token from `from` to `to`
+					  Checks first that contracts recipient is aware of ERC721 protocol (a lil bit of ERC165 magic)
+					  `to` and `from` cannot be 0x0
+					  `tokenId` must be owned by `from`
+	_exists				Returns whether `tokenId` exists
+	_isApprovedOrOwner		Returns whether `spender` is allowed to manage `tokenId`
+	_safeMint			Checks if the receiving address is able to work with ERC721 before minting		
+	_safeMint			Checks if the receiving address is able to work with ERC721 before minting
+					  Also allows for `data` to be placed in the emitted event
+	_mint				Mints `tokenId` and transfers it to `to`
+					  `tokenId` must not exist
+					  `to` cannot be 0x0
+	_burn				Destroys `tokenId`
+	_transfer			Transfers `tokenId` from `from` to `to`
+					  As opposed to {transferFrom}, this imposes no restrictions on msg.sender
+	_approve			Approve `to` to operate on `tokenId`
+	_setApprovalForAll		Approve `operator` to operate on all of `owner`'s tokens
+	_checkOnERC721Received		The call is not executed if the target address is not a contract
+					  If not a contract address then return true
+					  If a contract address
+					    If supports ERC721 interface return true
+					    If does not support ERC721 interface return false
+	_beforeTokenTransfer		A hook before a token transfer where the dev can do what they like	

@@ -1,0 +1,82 @@
+1
+	Ethereum is a next generation blockchain than can run smart contracts
+	A decentralized application platform
+2
+	TURING COMPLETE
+	What is turing complete
+		The expressiveness of a programming language
+	Smart contracts are turing complete
+	It means that smart contracts can run abitrary rules or states which can be read and written
+	Allows for state transitions
+	A rule makes a change to a state
+	State -> Rule -> State'
+3
+	INFRASTRUCTURE
+	Open source protocol and code
+	It's a blockchain, and the blockchain is used to store the state
+	There are many nodes that store the global state
+	'Ether' is the native currency and acts as a meter for how many resources are used
+4
+	PERMISSIONLESS APPS
+		You can make and build what you want without any permissions from a centralized application
+	High availability
+		Running 24/7/365
+		Since it's decentralized you don't deal with centralized chokepoints like a single server going down
+	High auditability
+		Open source, everything can be seen
+	High transparency
+		You can see the TXs, source code, protocol design etc
+	Neutrality
+		There is no centralized entity that can skew things either way
+	Censorship resistant
+		Because of the above stuff
+	Lower counterparty risk
+		The party that you're interacting with, there is a risk that something may not go your way
+		Because of the above stuff, that risk is severely reduced
+5
+	PURPOSE
+	It's not meant to be a currency/payment network
+	There is ether, but it's necessary for the operation of the network
+	Ether in this case is the utility token
+		Use the ethereum network by paying ether
+6
+	VS BITCOIN SCRIPT
+	Scripting is limited
+	You can only have scripts that output true or false
+	They are based on spending conditions
+	EVM is general purpose programming language
+	EVM is turing complete, and has abritrary code of any level of complexity
+7
+	BITCOIN VS ETHEREUM AS A BLOCKCHAIN
+	Bitcoin blockchain focuses on the ownership of bitcoin
+		All the state transitions are about the spending of coins
+	A bitcoin UTXO transfer => state transition
+		UTXO = unspent transaction output
+	When it comes to ethereum
+		Focus on the general purpose state
+		It can encode arbitrary state and arbitrary rules for transition
+8
+	CORE COMPONENTS
+	P2P network
+	TCP port 30303
+	Protocol name DEVp2p
+	On the network we have
+		Transactions where you have a sender, a recipient, value and data
+	State machine is the EVM
+	You have HLLs (highel level languages) that get turned into bytecode
+	Data structures is ethereum
+		Merkle patricia tree (this is used within the actual protocol itself)
+9
+	More core components
+		the core concensus algo
+		it uses the nakomoto POW idea
+		It's based upon of POW is used to determine which entity gets to add the next block
+		It's used as a way for sybil resistance (basically someone could make a bunch of nodes to attack but POW stops it)
+	POW has changed to POS 
+		This is part of the transition to ethereum2.0 aka serenity
+	Enocomic security
+		What makes the blockchain resistant to attacks?
+		51% attacks etc...
+		The POW algo is Ethash
+	Clients
+		

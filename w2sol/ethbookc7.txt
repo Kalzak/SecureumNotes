@@ -1,0 +1,233 @@
+In the book, smart contracts are referred to as 
+	'Immutable computer programs that run deterministically in the context of an Ethereum Virtual Machine as part of the Ethereum
+	  network protocol - IE on the decentralized Ethereum world computer'
+	Definitions in the sentence
+		Deterministic
+			The outcome of the execution of a smart contract is the same for everyone who runs it, given the context of the 
+			  TX that initiated its execution and the state of the Ethereum blockchain at the moment of execution
+Life cycle of a smart contract
+	Smart contracts are written in a high level language (Solidity, Vyper) 
+	In order to be run they have to be compiled into the low-level bytecode that runs the EVM
+	Once compiled they are deployed on the Ethereum platform using a special 'contract creation' TX
+		This is identified by being sent to the special contract creation address (0x0)
+	Unlike EOAs, there are no keys associated with an account created for a new smart contract
+	The smart contracts own themselves (aside from anything specifically coded in the contract)
+	Contracts never run 'on their own', need an EOA to get something started
+	TXs are atomic, they are either successfully terminated or they revert
+		Here are examples of successful termination
+			1
+				If TX is sent from EOA to another EOA then any changes to the global state (EG account balances) made
+				  by the TX are recorded
+			2
+				If a TX is sent from an EOA to a contract that does not invoke any other contracts, then any changes
+				  to the global state are recorded (EG account balances, state variables of contracts)
+			3
+				If a TX is sent from an EOA to a contract that only invokes other contracts in a manner that propogates
+				  errors, then any changes to the global state are recorded (EG account balances, state variables of
+				  the contracts)
+			4
+				If a TX is sent from an EOA to a contract that invokes other contracts in a manner that does not
+				  propogate errors, then there may be only some changes to the global state recorded 
+				  (EG account balances, state variables of the non-erroring contracts) whereas other changes to the  
+				  global state are not recorded (EG state variables of the erroring contracts)
+		A failed TX is still recorded as having been attempted and the ether spent on gas is deducted but there are 
+		  no changes to state or the contract
+Introduction to ethereum high-level languages
+	EVM is a virtual machine that runs a special form of code called EVM bytecode
+	It is possible to write SCs directly in EVM bytecode, it's easier for developers to use high-level language and a compiler to
+	  turn them into bytecode
+	There are two broad paradigms of programming languages
+		1) Declarative
+			Functions are written that express the logic of a program but not its flow
+			Used to create programs where there are no side effects, meaning there are no changes to state outside of a 
+			  function
+			EG Haskell, SQL
+		2) Imperative
+			Is where a programmer writes a set of procedures that combine the logic and flow of a program
+			EG C++, Java
+	Some languages are hybrid 
+		EG Lisp, JavaScript, Python
+	In smart contracts, bugs literally cost money
+		Therefore it is critically important to write SCs without unintended side effects
+	Solidity (the most used lanugage) is imperative
+	Currently supported high-lvl PLs for SCs (ordered by approx age)
+	1
+		LLL
+		A functional (declarative) PL with Lisp-like syntax
+		The first high-lvl PL for SCs, hardly used today
+	2
+		Serpent
+		A procedural (imperative) PL with similar syntax to Python
+		Can be used to write functional (declarative) code, though has side effects
+	3
+		Solidity
+		A proceducal (imperative) PL with similar syntax to JS, C++ or Java
+		Most popular and frequenttyl used PL for SCs
+	4
+		Vyper
+		A more recently developed language similar to Sperpent and again with Python-like syntax
+		Intended to get closer to a pure functional Python-like PL than Serpent, but not to replace Serpent
+	5
+		Bamboo
+		A newly developed language, influenced by Erlang with explicit state transitions and without iterative flows (loops)
+		Intended to reduce side effects and increase auditability
+		Very new and yet to be widely adopted
+Building smart contracts with Solidity
+	The main 'product' of the Solidity project is the solidity compiled 'solc' which converts programs written in Solidity to 
+	  EVM bytecode
+	The project also manages the important application binary interface (ABI) standard for SCs
+Selecting a version of solidity
+	Solidity follows a versioning model called 'semantic versioning' which specifies version numbers structured as three numbers
+	  separated by dots
+		MAJOR.MINOR.PATCH
+		The MAJOR is for major and backwards incompatible changes
+		The MINOR is incremented as backwards compatible changes inbetween major releases
+		The PATCH is incremented for backwards compatible bug fixes
+Download and install
+	(For ubuntu/debian)
+		> sudo add-apt-repository ppa:ethereum/ethereum
+		> sudo apt update
+		> sudo apt install solc
+	Once solc installed check version
+		> solc --version
+Writing a simple solidity program
+	Copied code from here https://github.com/ethereumbook/ethereumbook/blob/develop/code/Solidity/Faucet.sol
+	Made some changes to work with 0.8.9
+	> solc --optimize --bin faucet.sol
+The Ethereum contract ABI
+	In computer software, an ABI is an interface between to program modules (often between the operating system and user programs)
+	An ABI defines how data structures and functions are accessed in machine code
+		Not to be confused with an API which defines access in a high level way
+	The ABI is thus the primary way of encoding and decoding data into and out of machine code
+	In Ethereum, the ABI is used to encode contract calls for the EVM and to read data out of TXs
+	The purpose of an ABI is to define the functions in the contract that can be invoked and describe how each function will accept
+	  arguments and return its result
+	A contract's ABI is specified as a JSON array of function descriptions and events
+	A function description is a JSON object with fields
+		type
+		name
+		inputs
+		outputs
+		constant
+		payable
+	An event description object has the fields
+		type
+		name
+		inputs
+		anonymous
+	We use the solc cmdline compiler to produce the ABI for the faucet.sol
+		> solc --abi faucet.sol
+	The resulting JSON can be used by any application that wants to access the contract once it's deployed
+	Using the ABI, an application such as a wallet or DApp can construct TXs that call the functions in the contract with the 
+	  correct arguments and argument types
+	EG in faucet.sol, a wallet would know to call the function `withdraw` it needs to provide a uint256 argument `withdraw_amount`
+		The wallet could prompt the user to provide that value and then create a TX that encodes it and executes the function
+Selecting a solidity compiler and language version
+	Compiler directives
+		> pragma solidity ^0.6.0;
+		The '^' states that we allow compilation with any minor revision above 0.6.0 but not 0.7.0
+Programming with solidity
+	You can use suffixes of currency types
+	EG: 100000000000000000 == 0.1 ether
+Contract definition
+	Interface
+		An interface definition is structured exactly like a contract except none of the functions are defined, only declared
+		This type of declaration is ofter called a stub, it tells you the functions arguments and return types without
+		  any implementation
+		An interface specifies the 'shape' of a contract
+			When inherited, each of the functions declared by the interface must be defined by the child
+	Library
+		A library contract is one that is meant to be deployed only once and used by other contracts using the
+		  delegatecall method
+Selfdestruct
+	The functioncall is `selfdestruct(address recipient);`
+	Can only be called once, and has to actually be somewhere in the code to be able to be called
+	If it's not written in the contract then you can never delete
+Contract inheritance
+	Soliditys contract object supports inheritance which is a mechanism for extending a base contract with additional functionality
+	To use inheritance, specify a parent contract with the keyword `is`
+		> contract Child is Parent {
+		> 	...
+		> }
+	With this construct, the child inherits all the methods, functionality and variables of Parent
+	Solidity also supports multiple inheritance
+		> contract Child is Parent1, Parent2 {
+		> 	...
+		> }
+
+Creating a new instance and deploying SCs from other SCs
+	You have to import the code
+		> import "faucet.sol";
+	And then in the code somewhere
+		> Faucet _faucet;
+		> _faucet = new Faucet();
+	And if you want to give it some value to start with
+		> _faucet = (new Faucet).value(0.5 ether)();
+	And now if you want to call it's functions
+		> _faucet.destroy();
+
+Addressing an existing instance
+	You can cast an known interface to an existing address/interface
+	It is critically important that you know for sure that the instance you are adressing is in fact the type you assume
+		> function setInstance(address a) {
+		>	Faucet _faucet = Faucet(a);
+		>	_faucet.withdraw(0.1 ether);
+		> }
+Raw call and delegatecall
+	Solidity offers some even more 'low-level' functions for calling other contracts
+	These correspond directly to EVM opcodes of the same name and allow us to construct a contract-to-contract call manually
+	As such, they represent the most flexible AND the most dangerous mechanisms for calling other contracts
+	Call method
+		Example
+			> contract Token is Mortal {
+			> 	constructor(address _faucet) {
+			>		_faucet.call("withdraw", 0.1 ether);
+			>	}
+			> }
+		This type of call is a BLIND call into a function, like consuming a raw TX, only from within a contract's context
+		It can expose your contract to a number of security risks, most importantly REENTRANCY
+		The .call() function will return false if there is a problem, so you can evaluate the return value for error handling
+			> contract Token is Mortal {
+			> 	constructor(address _faucet) {
+			>		if !(_faucet.call("withdraw", 0.1 ether)) {
+			>			revert("Withdrawal from faucet failed");
+			>		}
+			>	}
+			> }
+	Another variant of call is `delegatecall`
+		It is different from a call in that the msg context does not change
+		EG a call changes the value of msg.sender to be the the calling contract, a delegatecall keeps tthe same msg.sender
+			Essentially, delegatecall runs the code of another contract within the context of the execution of the current
+			  contract
+		It is most often used to invoke code from a library
+		It also allows you to draw on the pattern of using library functions stored elsewhere, but have the code work with
+		  the storage data of your contract
+		`delegatecall` should be used with great caution, it can have unexpected side effects especially if the contract you 
+		  call was not designed as a library
+Gas considerations
+	When gas is run out an 'out of gas' (OOG) exception is thrown
+	Here are some ways to minimize gas cost of a function call
+		Avoid dynamically sized arrays
+			Any loop through a dynamically size array where a function performs operations on each element or searches
+			  for a particular element introduces the risk of using too much gas
+			Contract may run out of gas before finding desired result or before acting on every element
+		Avoid calls to other contracts
+			Calling other contracts, especially when the gas cost of their functions is not known introduces the risk
+			  of running out of gas
+			Avoid using libraries that are not well tested and broadly used
+			The less scrutiny a library has received from other programmers, the greater the risk of using it
+	Estimating gas cost
+		If you need to estimate the gas necessary to execute a certain method of a contract considering its arguments, you
+		  can use the following procedure
+			> var contract = web3.eth.contract(abi).at(address);
+			> gasEstimate = contract.myAwesomeMethod.estimateGas(arg1, arg2, {from: account});
+		gasEstimate() will tell you the number of gas units needed for its execution
+			It is an estimate because of the turing completeness of the EVM - it is trivial to create a function that
+			  will take vastly different amounts of gas to execute different calls
+			Even production code can change execution paths in subtle ways, resulting in hugely different gas costs
+			Most of the time gasEstimate() is accurate though
+		To obtain the gas price from the network you can use
+			> var gasPrice = web3.eth.getGasPrice();
+		And from there you can estimate the gas cost
+			> var gasCostInEther = web3.utils.fromWei((gasEstimate * gasPrice), 'ether');
+		 

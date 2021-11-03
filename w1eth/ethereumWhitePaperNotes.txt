@@ -1,0 +1,150 @@
+Merkle trees
+	Used to store the TXs in a block
+	A type of binary tree
+	Composed of a set of nodes with... 
+		A large number of leaf nodes at the bottom which contain the underlying data (one leaf for each TX)
+		A set of intermediate nodes where each node is the hash of its two children
+		A single root node which is also formed by the hash of its two children
+	The point is if an attacker changes one TX in the block, the hashed propogate upwards and a tiny change affects the
+	  root node hash
+	The root node hash is then used in the block header, so the block will be totally different
+Ethereum intent
+	A protocol for building decentralized programs
+	Blockchain with built-in turing-complete programming language
+Ethereum philosophy
+	Simplicity
+		Should be as simple as possible even at the cost of some data storage or time inefficiency
+		So that average programmers can use it
+		So that it is open to all
+		Any optimization which adds complexity should not be included unless that optimization provides substantial benefit
+	Universality
+		Ethereum does not have 'features'
+		Instead it provides a scripting language that a dev can use to make whatever they like
+	Modularity
+		The parts of Ethereum protocol should be as modular and separable as possible
+		Idea is that if one small protocol modification is made, the application stack will continue to function
+	Agility
+		Things can change if it's going to provide a big benefit (eg: to security or scalability)
+	Non discrimination/censorship
+		All regulatory mechanisms in the prococol are designed to regulate harm to the protocol/network
+		Will not attempt to oppose specific undesirable applications
+Ethereum accounts
+	In Ethereum the state is made up of accounts (20-byte address)
+	State transitions are direct transfers of value and information between accounts
+	Ethereum account contains four fields
+		Nonce (counter which increments on each TX to prevent replay attacks)
+		Accounts current ethere balance
+		Accounts contract code (if present)
+		Accounts storage (empty by default)
+	'Ether' is the main internal crypto-fuel of Ethereum and is used to pay TX fees
+	Two types of accounts
+		Externally Owned Accounts (EOAs) which are controlled by private keys
+		Contract accounts which are controlled by their contract code
+	EOAs have no code, messages are sent by creating and signing a TX
+	In contract account, every time contract account recieves a message its code activates allowing it to
+		Read internal storage
+		Write internal storage
+		Send other messages
+		Create contracts
+Messages and transactions
+	The term 'transaction' (TX) in Ethereum refers to the signed data package that stores a message to be sent from an EOA
+	Transactions contain
+		Message recipient
+		Signature identifying the sender
+		Amount of ether transferred from sender to recipient
+		Optional data field
+		A STARTGAS value representing the max number of computational steps the TX execution is allowed to take
+		A GASPRICE value representing the fee the sender pays per computational step
+	STARTGAS and GASPRICE are crucial for Ethereums anti-DOS model
+		Each operation costs gas which is paid by ether
+		Also a fee of 5 gas for every byte in the TX data field
+		Intent of the system is that an attackr needs to pay proportionately for every resource they consume
+Messages
+	Contract have ability to send 'messages' to other contracts
+		Messages are virtual objects that are never serialized and exist only in the Ethereum execution environment
+		A message contains
+			Sender of message (implicit)
+			Recipient of message
+			Amount of ether to transfer alongside the message
+			An optional data field
+			A STARTGAS value
+	A message is like a TX, but produces by a contract and not an EOA
+	A message is produced when a contract executes the CALL opcode
+Ethereum state transition function
+	The ethereum state transition function is APPLY(S,TX) -> S' where S is current state
+	Here are the steps
+		1)
+			Check is TX is well formed
+				Right num values
+				Signature is valid
+				Nonce matches the nonce is sender account
+			If not well formed return error
+		2)
+			Calculate TX fees as STARTGAS * GASPRICE and determine sending address from signature
+			Subtract fee from senders balance and increment senders nonce
+			If not enough balance to spend, return error
+		3)
+			Initialize GAS = STARTGAS and take off a certain quantity of gas per byte to pay for bytes in TX
+				The bytes here refer to the TX data field
+		4)
+			Transfer the TX value from the sender's account to the recipient
+			If receiving account does not exist yet, create it
+			If receiving account is contract, run contracts code till completion or out of gas
+		5)
+			If value transfer failed because sender doesn't have enough balance or out of gas revert all state changes
+			Except the payment of the fees, and add fees to miners account
+		6)
+			Otherwise refind fees for all remaining gas to sender and send the fees paid for gas consumed to miner
+	Gas note
+		If a message runs out of gas then that messages execution and all executions triggered by it revert
+		But parent executions do not need to revert
+Code execution
+	Code in Ethereum contracts is written in a low-level stack based bytecode languag referred to as
+	  'Ethereum virtual machine code' or 'EVM code'
+	Code consists of a series of bytes where each byte represents an operation
+	Operations have access to three types of space in which to store data
+		Stack (LIFO where values can be pushed/popped)
+		Memory (Infinitely expandable byte array)
+		Storage (A key/value store for long term storage)
+			Unlike stack and memory which reset after computation ends, storage persists in the long term
+	Code can also access
+		Value
+		Sender
+		Data 
+		Block header data
+	Code can return a byte array of data as output
+	Formal execution model of EVM code is surprisingly simple
+		While EVM is running its full computational state can be defined by the tuple
+			(block_state, transaction, message, code, memory, stack, pc, gas)
+			Where block_state is the global state containing all accounts and includes balances and storage
+		At start of every round of execution ,current instruction is found at `pc`-th byte of `code`
+			Or 0 if `pc >= len(code)`
+		Each instruction has its own definition in how it affects the tuple
+		EG:
+			ADD pops two items off stack and pushes their sum, reduces gas by 1 and increments pc by 1
+				SSTORE pops top two items off stack and inserts second item into contract's storage at index
+				  specified by the first item
+Blockchain and mining
+	Block validation algorithm
+		1)
+			Check if previous block referenced exists and is valid
+		2)
+			Check that timestamp of block is greater than the previous referenced block and less than 15 mins in future
+		3)
+			Check that block number, difficulty, TX root, uncle root and gas limit are valid
+		4)
+			Check that the proof of work on the block is valid
+		5)
+			Let `S[0]` be the state at the end of the previous block
+		6)
+			Let `TX` be the block's TX list, with `n` TXs
+			For all `i` in `0 ... n-1`, set `S[i+1] = APPLY(S[i],TX[i])`
+			If any application returns an error or if total gas consumed by block up until this point exceeds GASLIMIT
+			  then return an error
+		7)
+			Let `S_FINAL` be `S[n]`, but adding the block reward paid to the miner
+		8)
+			Check if the merkle tree root of the state `S_FINAL` is equal to final state root provided in block header
+			If it is then block is valid else not valid
+		
+				

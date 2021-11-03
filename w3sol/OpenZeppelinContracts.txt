@@ -1,0 +1,791 @@
+ERC20
+	Already covered
+ERC20 extensions/utilities
+	Mintable
+		Summary
+			Adds a set of accounts with the `MinterRole` which have permission to mint new tokens as they see fit
+		Modifiers
+			onlyMinter()
+		Functions
+			mint(account, amount)
+				REQ caller must have MinterRole
+	Burnable
+		Summary
+			Allows token holders to destroy both their tokens and those that they have an allowance for
+			Events exist for burning so it can be seen off chain via event analysis
+		Functions
+			burn(amount)
+			burnFrom(account, amount)
+	Capped
+		Summary
+			Is an extension of ERC20Mintable
+			Adds a cap to the supply of tokens
+		Functions
+			constructor(cap)
+			cap()
+			_mint(account, value)
+	Pausable
+		Summary
+			ERC20 with pausable transfers and allowances
+			Useful if emergency switch for freezing all token transfers in case of bug
+		Modifiers
+			whenNotPaused()
+			whenPaused()
+			onlyPauser()
+		Functions
+			paused()
+			pause()
+			unpause()		
+	Snapshot
+		Summary
+			ERC20 with snapshot mechanism
+			When snapshot is created, balances and total supply at the time are recorded for later access
+		Functions
+			_snapshot()
+			balanceOfAt(account, snapshotId)
+			totalSupplyAt(snapshotId)
+			_beforeTokenTransfer(from, to, amount)
+	PresetFixedSupply
+		Summary	
+			Preminted initial supply
+			Abilitiy for holders to burn their tokens
+			No access control mechanism (for minting/pausing) and hence no governance
+			Uses ERC20Burnable to include burn capabilities
+		Functions
+			constructor(name, symbol, initialSupply, owner)
+	PresetMinterPauser
+		Summary
+			Ability for holders to burn their tokens
+			A minter role that allows for token minting
+			A pauser role that allows to stop all tokens transfers
+			Uses AccessControl for roles
+		Functions
+			constructor(name, symbol)
+			mint(to, amount)
+			pause()
+			unpause()
+			_beforeTokenTransfer(from, to, amount)
+	Safe
+		Summary
+			Wrappers around ERC20 operations that throw on failure (when token contract returns false)
+			Tokens that return no value (and instead revert or throw on failure) are also supported, non-reverting calls
+			  are assumed to be successful
+			To use library `using SafeERC20 for IERC20;`
+		Functions
+			safeTransfer(token, to, value)
+			safeTransferFrom(token, from, to, value)
+			safeApprove(token, spender, value)
+			safeIncreaseAllowance(token, spender, value)
+			safeDecreaseAllowance(token, spender, value)	
+	TokenTimelock
+		Summary
+			A token holder contract that will allow a beneficiary to extract the tokens after a given release time
+		Functions
+			constructor(token_, beneficiary_, releaseTime_)
+			token()
+			beneficiary()
+			releaseTime()
+			release()
+ERC721
+	Already covered		
+ERC721 extensions/presets/utilities
+	Burnable
+		Summary
+			ERC721 token that can be irreversibly burned
+		Functions
+			burn(tokenId)
+	Enumerable
+		Summary
+			Allows your contract to publish its full list of NFTs and make them discoverable
+		Functions
+			tokenOfOwnerByIndex(owner, index)
+			totalSupply()
+			tokenByIndex(index)
+			_transferFrom(from, to, tokenId)
+			_mint(to, tokenId)
+			_burn(owner, tokenId)
+			_tokensOfOwner(owner)
+	Pausable
+		Summary
+			Adds pausable transfers
+		Modifiers
+			whenNotPaused()
+			whenPaused()
+			onlyPauser()
+		Functions
+			paused()
+			pause()
+			unpause()
+	URIStorage
+		Summary
+			ERC721 token with storage based token URI management
+		Functions
+			tokenURI(tokenId)
+			_setTokenURI(tokenId, _tokenURI)
+	PresetMinterPauserAutoId
+		Summary
+			Ability for holders to burn their tokens
+			A minter role that allows for token minting
+			A pauser roles that allows to stop all token transfers
+			Token ID and URI autogeneration
+			Uses AccessControl for roles
+		Functions
+			constructor(name, symbol, baseURI)
+			mint(to)
+			pause()
+			unpause()
+			_beforeTokenTransfer(from, to, tokenId)
+	Holder
+		Summary
+			Implementation of the IERC721Receiver interface
+			Accepts all token transfers
+		Functions
+			onERC721Received(address, address, uint256, bytes) => bytes4
+ERC777
+	Uses the ERC1820 registry standard to let token holders and recipients react to token movements by using setting implementers
+	  for the associated interfaces in said registry
+	Functions
+		name()
+		symbol()
+		granularity()
+		totalSupply()
+		balanceOf(account)
+		send(recipient, amount, data)
+		burn(amount, data)
+		isOperatorFor(operator, tokenHolder)
+		authorizeOperator(operator)
+		revokeOperator(operator)
+		defaultOperators()
+		operatorSend(sender, recipient, amount, data, operatorData)
+		operatorBurn(account, amount, data, operatorData)
+	Other details
+		1
+			Has hook functions in contracts so when they receive they can execute
+		2
+			Contracts and regular addresses can control/reject which token they send by registing a tokensToSend hook
+			(rejection is done by reverting in the hook function)
+		3
+			Contracts and regular addresses can control/reject which token they receive by registing a tokensToSend hook
+			(rejection is done by reverting in the hook function)
+		4
+			The tokensReceived hook allows to send tokens to contracts and notify it in a single TX
+			Unlike ERC20 which requires a double call (approve/transferFrom) to achieve this
+		5
+			Since contracts are required to implement these hooks in order to recieve tokens, no tokens can get stuck in
+			  a contract that is unaware of the ERC777 protocol
+		6
+			It mandates that decimals always return a fixed value of 18 so it doesn't need to be manually set
+		7
+			Has concept of `defaultOperators` which are special accounts (usually other SCs) that will be able to transfer
+			  token on behalf of their holders
+		8
+			Implements `send` (besides `transfer`) where if the recipient contract has not registered itself aware of the 
+			  ERC777 protocol then transfers to it are disabled
+			Accounts can be notified of tokens being sent to them by having a contract implement this `ERC777Recipient`
+			  interface and registering it on the ERC1820 global registry
+ERC1155
+	A standard interface for contracts that manage multiple tokens types
+	A single deployed contract may include any combination of fungible/non-fungible/semi-fungible tokens
+	Details
+		1
+			Uses a single smart contract to represent multiple tokens at once
+		2
+			Accounts have distinct balance of each token ID
+			Non-fungible tokens are implemented by simply minting a single one of them
+		3
+			Leads to massive gas savings since you can operate with multiple tokens in one TX
+			Also you don't have to deploy lots of separate contracts
+		4
+			Because all state is held in one contract, is possible to operate over multiple tokens in a single TX in
+			  an efficient manner
+			The standard provides two functions `balanceOfBatch` and `safeBatchTransferFrom` that make querying multiple
+			  balances and transferring multiple tokens simpler and less gas-intensive
+Ownable
+	Summary
+		Provides basic access control mechanism where there is an account (an owner) that can be granted exclusive access
+		  to specific functions
+		This module is used through inheritance
+	Modifiers
+		onlyOwner()
+	Functions
+		owner()
+		isOwner()
+		renounceOwnership()
+		transferOwnership(newOwner)
+		_transferOwnership(newOwner)
+AccessControl
+	Summary
+		While there is `ownable`, it's pretty simply and doesn't address multiple levels of authorization
+		Module that allows children to implement role-based access control mechanisms
+		Roles are referred to by their 32 byte identifier which is a keccak256 of the string of the role
+	Modifiers
+		onlyRole(role)
+	Functions
+		supportsInterface(interfaceId)
+		hasRole(role, account)
+		_checkRole(role, account)
+		getRoleAdmin(role)
+		grantRole(role, account)
+		revokeRole(role, account)
+		renounceRole(role, account)
+		_setupRole(role, account)
+		_setRoleAdmin(role, adminRole)
+	NOTE
+		There is also AccessControlEnumerable where you can enumerate the members of each role
+Pausable
+	Already covered
+ReentrancyGuard
+	Already covered
+PullPayment
+	Summary	
+		When the paying contract doesn't interact directly with the receiver account
+		The receiver account withdraws the payments itself
+		Considered best practice as it prevents recipients from blocking execution and eliminates reentrancy concerns
+	Functions
+		withdrawPayments(payee)
+		withdrawPaymentsWithGas(payee)
+		payments(dest)
+		_asyncTransfer(dest, amount)
+Address
+	Summary
+		Collection of functions related to the address type
+	Functions
+		isContract(address account) => bool
+			returns true if `account` is a contract
+		sendValue(address payable recipient, uint256 amount)
+			Replacement for Solidity's `transfer`
+			Sends `amount` wei to `recipient`, forwarding all available gas and reverting on errors
+			EIP1884 increases gas cost of certain opcodes, possibly making contracts go over the 2300 gas limit imposed 
+			  by transfer, making them unable to recieve funds via `transfer`
+			`sendValue` removes this limitation
+		functionCall(address target, bytes data) => bytes
+			Performs Solidity function call using low level `call`
+			`functionCall` is more safe than a plain `call` so use it instead
+			If `target` reverts with a revert reason it is bubbled up by this function
+			Returns the raw returned data, use abi.decode to convert
+			REQ
+				`target` must be a contract
+				calling `target` with `data` must not revert
+		functionCall(address target, bytes data, string errorMessage) => bytes
+			Same as `functionCall` but with `errorMessage` as fallback revert reason when `target` reverts
+		functionCallWithValue(address target, bytes data, uint256 value) => byte
+			Same as `functionCall` but also transferring `value` wei to `target`
+		functionCallWithValue(address target, bytes data, uint256 value, string errorMessage) => byte
+			Same as `functionCallWithValue` but with `errorMessage` as fallback revert reason when `target` reverts
+		functionStaticCall(address target, bytes data) => bytes
+			Same as `functionCall`, but performing a static call
+		functionStaticCall(address target, bytes data, string errorMessage) => bytes
+			Same as `functionCall`, but performing a static call
+		functionDelegateCall(address target, bytes data) => bytes
+			Same as `functionCall`, but performing a delegateCall
+		functionDelegateCall(address target, bytes data, string errorMessage) => bytes
+			Same as `functionCall`, but performing a delegateCall
+Arrays
+	Summary
+		Collection of functions related to array types
+	Functions
+		findUpperBound(uint256[] array, uint256 element) => uint256
+			Searches a sorted array and returns the first index that contains a value greater or equal to `element`
+			If no such index exists the array length is returned
+			Time complexity O(logn)
+			`array` is expected to be sorted in ascending order, and to not contain any repeated elements
+Context
+	Summary
+		Provides information about the current execution context including the sender of the TX and its data
+		They are generally available via msg.sender and msg.data but should not be accessed in such a direct manner since
+		  when dealing with meta-TXs the account sending and paying for execution may not be the actual sender
+	Functions
+		_msgSender()
+		_msgData()
+Counters
+	Summary
+		Provides counters that can only be incremented and decremented by one
+	Functions
+		current(struct Counters.Counter counter) => uint256
+		increment(struct Counters.Counter counter) => uint256
+		decrement(struct Counters.Counter counter) => uint256
+Create2
+	Summary
+		Helper to make the usage of the `CREATE2` EVM opcode easier and safer
+		`CREATE2` can be used to compute in advance the address where a smart contract will be deployed
+	Functions
+		deploy(uint256 amount, bytes32 salt, byte bytecode) => address
+			Deploys a contract using `CREATE2`
+		computeAddress(bytes32 salt, bytes32 bytecodeHash) => address
+			Returns the address where a contract will be stored by deployed via `deploy`
+			If `salt` is changed then address will change
+		computeAddress(bytes32 salt, bytes32 bytecodeHash, address deployer) => address
+			Returns address where contract will be stored if deployed via `deploy` from a contract located at `deployer`
+Multicall
+	Summary
+		Provides a function to batch together multiple calls in a single external call
+	Functions
+		multicall(bytes[] calldata data) => bytes[]
+			Recieves and executes a batch of function calls on this contract
+Strings
+	Summary
+		String operations
+	Functions
+		toString(uint256 value) => string
+			Converts a uint256 to its ASCII `string` decimal representation
+		toHexString(unt256 value) => string
+			Converts a uint256 to its ASCII `string` hexadecimal representation
+		toHexString(uint256 value, uint256 length) => string
+			Converts a uint256 to its ASCII `string` hexadecimal representation with fixed length
+ECDSA
+	Summary
+		Elliptic Curve Digital Signature Algorithm (ECDSA) operations
+		Provides functions for recoving and managing Ethereum account ECDSA signatures
+		The `ecrecover` EVM opcode allows for malleable (non-unique) signatures
+	Functions
+		Not really covered in article
+MerkleProof
+	Summary
+		Operations to deal with verification of Merkle Trees proofs
+	Functions
+		verify(bytes32[] proof, bytes32 root, bytes32 leaf) => bool
+			Returns true if a `leaf` can be proved to be a part of a Merkle tree defined by `root`
+			For this, a `proof` must be provided, containing sibling hashes on the branch from the leaf to the root of the
+			  tree
+			Each pair of leaves and each pair of pre-images are assumed to be sorted
+SignatureChecker
+	Summary
+		Signature verification helper
+		Provide a singly mechanism to verify both private-key (EOA) ECDSA signatues and ERC1271 contract signatures
+		Using this instead of ECDSA.recover in your contract will make them compatible with smart contract wallets such 
+		  as Argent and Gnosis
+	Notes
+		1
+			EOAs can sign messages with their associated private keys, but currently contracts cannot
+			This is a problem for many applications that implement signature based off-chain methods since contracts can't
+			  easily interact with them as they do not possess a private key
+			ERC1271 proposes a standard way for any contract to verify whether a signature on behalf of a given contract
+			  is valid
+		2
+			Unlike ECDSA signatures, contract signature's are revocable, and the outcome of this function can thus change 
+			  through time
+			It could return true at block N and false at block N+1 (or the opposite)
+EIP712
+	Summary
+		Signing data is a solved problem if all we care about are bytestrings
+		Unfortunately in the real world we care about complex and meaningful messages
+		Hashing structured data is non-trivial and errors result in loss of the securit properties of the system
+		This is a standard for hashing and signing of typed structured data as opposed to just bytestrings
+	Article
+		This contract implements the EIP712 domain separator (_domainSeparatorV4) that is used as a part of the encoding scheme,
+		  and the final step of the encoding to obtain the message digest that is then signed via ECDSA (_hashTypedDataV4)
+		Protocols need to implement the type-specific encoding they need in their contracts using a combination of abi.encode
+		  and keccak256
+	Notes
+		1
+			constructor(string name, string version)
+				Initializes the domain separator and parameter caches
+				The meaning of name and version is specified in EIP712
+					1) Name is the user readable name of the signing domain, IE the name of the DApp or the protocol
+					2) Version is the current major version of the signing domain
+Escrow
+	Summary
+		Holds funds designated for a payee until they withdraw them
+	Functions
+		depositsOf(address payee) => uint256
+		deposit(address payee)
+			Stores the sent amout as credit to be withdrawn
+		withdraw(address payable payee)
+			Withdraw accumulated balance for a payee, forwarding all gas to the recipient
+ConditionalEscrow
+	Summary
+		Base abstract escrow to only allow withdrawal if a condition is met
+	Functions
+		withdrawalAllowed(address payee) => bool
+			Returns whether an address is allowed to withdraw their funds
+			To be implemented by derived contracts
+		withdraw(address payable payee)
+RefundEscrow
+	Summary
+		Escrow that holds funds for a beneficiary, deposited from multiple parties
+		The owner account (contract creator) may deposit, close the deposit period, and allow for either withdrawal by the 
+		  beneficiary, or refunds to the depositors
+	Functions
+		Not covered in article
+ERC165
+	Summary
+		Creates a standard method to publish and detech what interfaces a smart contract implements
+	Functions
+		_registerInterface(bytes4 interfaceId)
+			Registers the contract as an implementer of the interface `interfaceId`
+		supportsInterface(bytes4 interfaceId) => bool
+			Time complexity O(1), guaranteed to always use less than 30000 gas
+Math
+	Summary
+		Standard math utilities missing in the Solidity language
+	Functions
+		max(uint256 a, uint256 b) => uint256
+			Returns the largest of two numbers
+		min(uint256 a, uint256 b) => uint256
+			Returns the smallest of two numbers
+		average(uint256 a, uint256 b) => uint256
+			Returns the average of two numbers
+			The result if rounded towards zero
+		ceilDiv(uint256 a, uint256 b) => uint256
+			Returns the ceilingn of the division of two numbers
+			NOTE
+				Differs from `/` because ceilDiv rounds up instead of down
+SafeMath
+	Summary
+		Wrappers over Solidity's arithmetic operations
+		No longer needed startingwith Solidity0.8 as it has builtin overflow checks
+	Functions
+		tryAdd(a, b)
+		trySub(a, b)
+		tryMul(a, b)
+		tryDiv(a, b)
+		tryMod(a, b)
+		add(a, b)
+		sub(a, b)
+		mul(a, b)
+		div(a, b)
+		mod(a, b)
+		sub(a, b, errorMessage)
+		div(a, b, errorMessage)
+		mod(a, b, errorMessage)
+SignedSafeMath
+	Summary
+		Same as SafeMath but for signed integers
+	Functions
+		mul(a, b)
+		div(a, b)
+		sub(a, b)
+		add(a, b)
+SafeCast
+	Summmary
+		Wrappers over Soliditys uintXX/uintXX casting operators with added overflow checks
+	Functions
+		toUint224(value)
+		toUint128(value)
+		toUint96(value)
+		toUint64(value)
+		toUint32(value)
+		toUint16(value)
+		toUint8(value)
+		toUint256(value)
+		toInt128(value)
+		toInt64(value)
+		toInt32(value)
+		toInt16(value)
+		toInt8(value)
+		toInt256(value)
+EnumerableMap
+	Summary
+		Library for managing an enumerable variant of Solidity's `mapping` type
+		Maps have the following properties
+			Entries are added, removed and checked for existence in constant time (O(1))
+			Entries are enumerated in O(n)
+			No guarantees are made on the ordering
+	Functions
+		set(struct EnumerableMap.UintToAddressMap map, uint256 key, address value) => bool
+			Adds a key-value pair to a map, or updates the value for an existing key O(1)
+			Returns true if the key was added to the map
+		remove(struct EnumerableMap.UintToAddressMap map, uint256 key, address value) => bool
+			Removes a value from a set O(1)
+			Returns true if the key was removed from the map 
+		contains(struct EnumerableMap.UintToAddressMap map, uint256 key, address value) => bool
+			Returns true if the key is in the map
+		length(struct EnumerableMap.UintToAddressMap map) => bool
+			Returns the number of elements in the map O(1)
+		at(struct EnumerableMap.UintToAddressMap map, uint256 index) => uint256, address
+			Returns the element stored at position `index` in the set O(1)
+			Note there are no guarantees on the ordering of values inside the array
+			Ordering may change when more values are added or removed
+		get(struct EnumerableMap.UintToAddressMap map, uint256 key) => address
+			Returns the value associated with `key` O(1)
+		get(struct EnumerableMap.UintToAddressMap map, uint256 key, string errorMessage) => address
+			Same as `get` but with custom error message when `key` is not in the map
+EnumerableSet
+	Summary
+		Library for managings sets of primitives
+		Sets have the following properties
+			Elements are added, removed and checked for existence in constant time O(1)
+			Elements are enumerated in O(n)
+			No guarantees are made on the ordering
+	Functions
+		add(struct EnumerableSet.<Type>Set set, <Type> value) => bool
+			Adds a value to a set O(1)
+			Returns true if value was added to set
+		remove(struct EnumerableSet.<Type>Set set, <Type> value) => bool
+			Removes a value from a set O(1)
+			Returns true if the value was removed from the set
+		contains(struct EnumerableSet.<Type>Set set, <Type> value) => bool
+			Returns true if the value is in the set
+		length(struct EnumerableSet.<Type>Set set) => uint256
+			Returns the number of values in the set O(1)
+		at(struct EnumerableSet.<Type>Set set, uint256 index) => <Type>
+			Returns the value stored at position `index` in the set O(1)
+	NOTE
+		For the functions there is <Type> which can be
+			bytes32
+				EnumerableSet.Bytes32Set
+			address
+				EnumerableSet.AddressSet
+			uint256
+				EnumerableSet.UintSet
+BitMaps
+	Summary
+		Library for managing uint256 to bool mapping in a compact and efficient way, providing the keys are sequential
+	Functions
+		get(struct BitMaps.BitMap bitmap, uint256 index) => bool
+			Returns whether the bit at `index` is set
+		setTo(struct BitMaps.BitMap bitmap, uint256 index, bool value)
+			Sets the bit at `index` to the boolean `value`
+		set(struct BitMaps.BitMap bitmap, uint256 index)
+			Sets the bit at `index`
+		unset(struct BitMaps.BitMap bitmap, uint256 index)
+			Unsets the bit at `index`
+PaymentSplitter
+	Summary
+		This contract allows to split Ether payments among a group of accounts
+		The sender does not need to be aware that the Ether will be split in this way since it is handles by the contract
+		The split can be in equal parts or any other arbitrary portion
+		Folows a pull payment model
+	Functions
+		Not covered in article
+TimelockController
+	Summary
+		Contract module which acts as a timelocked controller
+		When set as the owner of an `Ownable` SC, it enforces a timelock on all `onlyOwner` maintenance operations
+		This gives time for users of the controlled contract to exit before a potentially dangerous maintenance operation
+		  is applied
+	Modifiers
+		onlyRoleOrOpenRole(bytes32 role)
+			Modifier to make a function callable by only a certain role
+			If a role is set to address(0) then it's set for everyone
+	Functions
+		constructor(uint256 minDelay, address[] proposers, address[] executors)
+			Initializes the contract with a given `minDelay`
+		receive()
+			Contract might receive/hold ETH as part of the maintenance process
+		isOperation(bytes32 id) => bool 
+			Returns whether an id correspond to a registered operation
+			This includes both Pending, Ready, and Done operations
+		isOperationPending(bytes32 id) => bool
+			Returns whether an operation is pending or not
+		isOperationReady(bytes32 id) =>
+			Returns whether an operation is ready or not
+		getTimestamp(bytes32 id) => uint256
+			Returns the timestamp at with an operation becomes ready (0 for unset operations, 1 for done operations)
+		getMinDelay() => uint256
+			Returns the minimum delay for an operation to become valid
+			This value can be changed by executing an operation that calls `updateDelay`
+		hashOperation(address target, uint256 value, bytes data, bytes32 precedessor, bytes32 salt) => bytes32 hash
+			Returns the identifier of an operation containing a single TX
+		hashOperationBatch(address[] targets, uint256[] values, bytes[] datas, bytes32 precedessor, bytes32 salt) => bytes32 hsh
+			Returns the identifier of an operation containing a batch of TXs
+		schedule(address target, unit256 value, bytes data, bytes32 predecessor, bytes32 salt, uint256 delay)
+			Schedule an operation containing a single TX
+		scheduleBatch(address[] targets, unit256[] values, bytes[] datas, bytes32 predecessor, bytes32 salt, uint256 delay)
+			Schedule an operation containing a batch of TXs
+		cancel(bytes32 id)
+			Cancel an operation
+		execute(address target, unit256 value, bytes data, bytes32 predecessor, bytes32 salt)
+			Execute an (ready) operation containing a single TX
+		executeBatch(address[] targets, unit256[] values, bytes[] datas, bytes32 predecessor, bytes32 salt)
+			Execute an (ready) operation containing a batch of TXs
+		updateDelay(uint256 newDelay)
+			Changes the minimum timelock duration for future operations
+ERC2771Context
+	Summary
+		Context variant with ERC2771 support
+		ERC2771 provides support for meta TXs, which are TXs that have been
+			1
+				Authorized by the TX signer
+				EG signed by an EOA
+			2
+				Relayed by an untrusted third party that pays for the gas (the gas relay)
+		The problem is that for a contract that is not aware of meta TXs, the `msg.sender` of the TX will appear to be coming
+		  from the Gas Relay and not the TX signer
+		A secure protocol for a contract to accept meta TXs need to prevent the Gas Relay from forging, modifying or duplicating
+		  requests by the TX signer
+		The entities are
+			1) TX Signer
+				Entity that signs and sends to request to gas relay
+			2) Gas Relay
+				Receives a signed request off-chain from TX signer and pays gas to turn it into a valid TX that goes 
+				  through Trusted Forwarder
+			3) Trusted Forwarder
+				A contract that is trusted by the recipient to correctly verify the signature and nonce before 
+				  forwarding the request from TX signer
+			4) Recipient
+				A contract that can secuely accept meta TXs through a trusted forwarder by being compiliant with
+				  this standard
+	Functions
+		constructor(trustedForwarder)
+		isTrustedForwarder(forwarder)
+		_msgSender()
+		_msgData()
+
+MinimalForwarder
+	Summary
+		Provides a simple minimal forwarder (as described above) to be used together with an ERC2771 compatible contract
+		It verifies the nonce and signature of the forwarded request before calling the destination contract
+	Struct definition
+		struct ForwardRequest{address from; address to; uint256 value; uint256 gas; uint256 nonce; bytes data;}
+	Functions
+		verify(ForwardRequest calldata req, bytes calldata signature) => bool
+		execute(ForwardRequest calladata req, bytes calldata signature) => success, returndata
+Proxy
+	Summary
+		This abstract contract provides a fallback function that delegates all calls to another contract using the EVM
+		  instruction `delegateCall`
+		We refer to the second contract as the `implementation` behind the proxy, and it has to be specified by overridng the
+		  virtual `_implementation` function
+		Additionally, delegation to the implementation can be triggered manually through the `_fallback` function, or to a 
+		  different contract through the `_delegate` function
+		The success and return data of the delegated call will be returned back to the caller of the proxy
+	Functions
+		_delegate(address implementation)
+			Delegates the current call to `implementation`
+			This function does not return to its internal call site, it will return directly to the external caller
+		_implementation() => address
+			This is a virtual function that should be overriden so it returns the address to which the fallback function 
+			  and `_fallback` should delegate
+		_fallback()
+			Delegates the current call to the address returned by _implementation()
+			This function does not return to its internal call site, it will return directly to the external caller
+		fallback()
+			Fallback function that delegates calls to the address returned by `_implemenation`
+			Will run if no other function in the contract matches the call data
+		receive()
+			Fallback function that delegates calls to the address returned by `implementation`
+			Will run if call data is empty
+		_beforeFallback()
+			Hook that is called before falling back to the implementation
+			Can happen as part of a manual `_fallback` call, or as part of the Solidity `fallback` or `receive` functions
+			If overridden should call `super._beforeFallback`
+ERC1967Proxy
+	Summary
+		This implements an upgradable proxy
+		It is upgradable because calls are delegated to an implementation address that can be changed
+		This address is stored in storage in the location specified by EIP1967, so that it doesn't conflict with the storage
+		  layout of the implementation behind the proxy
+		Upgradability is only provided internally through `_upgradeTo`
+	Functions
+		constructor(address _logic, bytes _data)
+			Initializes the upgradable proxy with an initial implementation specified by `_logic`
+			If `_data` is nonempty, it's used as data in a delegate call to `_logic`
+			This will typically be an encoded function call, and allows initializing the storage of the proxy like a 
+			  Solidity constructor
+		implementation() => address 
+			Returns the current implementation address
+		upgradeTo(address newImplementation)
+			Upgrades the proxy to a new implementation
+TransparentUpgradableProxy
+	Summary
+		This contract implements a proxy that is upgradeable by an admin
+		Avoids proxy selector clashing (https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357)
+	  	  by using the transparent proxy pattern and it implies two things
+			1
+				If any account other than the admin calls the proxy, the call will be forwarded to the implementation, 
+				  even if that call matches one of the admin functions exposed by the proxy itself
+			2
+				If the admin calls the proxy, it can access the admin functions, but its calls will never be forwarded
+				  to the implementation
+				If the admin tries to call a function on the implementation it will fail with an error that says
+				  "admin cannot fallback to proxy target"
+		These properties mean that the admin account can only be used for admin actions like upgrading the proxy or changing the		  admin, so it's best if it's a dedicated account that is not used for anything else
+	Modifiers
+		ifAdmin()
+			Modifier used internally that will delegate the call to the implementation unless the sender is the admin
+	Functions
+		constructor(address _logic, address admin_, bytes _data)
+			Initializes an upgradable proxy managed by `_admin`, backed by the implementation at `_logic`, and 
+			  optionally initialized with `_data` as explained in ERC1967Proxy constructor
+		admin() => address
+			Returns the current admin
+		implementation() => address
+			Returns the current implementation
+		changeAdmin(address newAdmin)
+			Changes the admin of the proxdy
+		upgradeTo(address newImplementation)
+			Changes the implementation of the proxy
+		upgradeToAndCall(address newImplementation, bytes data)
+			Upgrade the implementation of the proxy, and then call a function to the new implementation as specified
+			  by `data`, which should be an encoded function call
+			This is useful to initialize new storage variables in the proxies contract
+		_admin() => address
+			Returns the current admin
+		_beforeFallback()
+			Makes sure the admin cannot access the fallback function
+ProxyAdmin
+	Summary
+		Is an upgrade
+		Is a central admin for all proxies on your behalf, making their management as simple as possible
+		As an admin of all proxy contracts it is in charge of upgrading them, as well as transferring their ownership to
+		  other admin
+		This contract is used to complement the Transparent Proxy Pattern, which prevent an admin from accidentally triggering
+		  a proxy management function when interacting with their instances
+	Functions
+		getProxyImlementation(contract TransparentUpgradableProxy proxy) => address
+			Return the current implementation of proxy
+		getProxyAdmin(contract TransparentUpgradableProxy proxy) => address
+			Returns the current admin of proxy
+		changeProxyAdmin(contract TransparentUpgradableProxy proxy, address newAdmin)
+			Changes the admin of proxy to newAdmin
+		upgrade(contract TransparentUpgradableProxy proxy, address implementation)
+			Upgrades proxy to implementation
+		upgradeAndCall(contract TransparentUpgradableProxy proxy, address implementation, bytes data)
+			Upgrades proxy to implementation and calls a function on the new implementation
+BeaconProxy
+	Summary
+		This contract implements a proxy that gets the implementation address for each call from a UpgradableBeacon
+		The beacon address is stored in storage slot `uint256(keccak256('eip1967.proxy.beacon'))-1` so that it doesn't
+		  conflict with the storage layout of the implementation behind the proxy
+	Functions
+		constructor(address beacon, bytes data)
+			Initializes the proxy with `beacon`
+			Behaves exactly like in ERC1967Proxy constructor
+		_beacon() => address
+			Returns the current beacon address
+		_implementation() => address
+			Returns the current implementation address of the associated beacon
+		_setBeacon(address beacon, bytes data)
+			Changes the proxy to a new beacon
+			If `data` is nonempty it's used as data in a delegate call to the implementation returned by the beacon
+UpgradableBeacon
+	Summary
+		This contract is used in conjunction with one or more instances of `BeaconProxy` to determine their implementation 
+		  contract, which is where they will delegate all function calls
+		An owner is able to change the implementation the beacon points to, thus upgrading the proxies that use this beacon
+	Functions
+		constructor(address implementation_)
+			Sets the address of the initial implementation, and the deployer account as the owner who can upgrade the beacon
+		implementation() => address
+			Returns the current implementation address
+		upgradeTo(address newImplementation)
+			Upgrades the beacon to a new implementation
+Clones
+	Summary
+		EIP1167 is a standard for deploying minimal proxy contracts, also known as 'clones'
+		To simply and cheaply clone a contract functionality in an immutable way, this standard specifies a minimal bytecode
+		  implementation that delegates all calls to a known, fixed address
+		The library includes a function to deploy a proxy using either `create` (traditional deployment) or `create2`
+		  (salted deterministic deployment)
+	Functions
+		clone(address master) => address instance
+			Deploys and returns the address of a clone that mimics the behaivour of `master`
+			This function uses the `create` opcode which should never revert
+		cloneDeterministic(address master, bytes32 salt) => address instance
+			Same as `clone` but uses `create2` so it needs a salt
+		predictDeterministicAddress(address master, bytes32 salt) => address instance
+			Computes the address of the clone to be deployed
+		predictDeterministicAddress(address master, bytes32 salt, address deployer) => address instance
+			Computes the address of the clone to be deployed from `deployer`
+Initializable
+	Summary
+		This is a base contract to aid in writing upgradable contracts, or any kind of contract that will be deployed behind
+		  a proxy
+		Since a proxied contract can't have a constructor, it's common to move constructor logic to an external initializer 
+		  function, usually called `initialize`
+		Then it becomes necessary to protect this initializer function so it can only be called once
+		The `initializer` modifier provided by this contract has this effect
+	Modifiers
+		initializer()
+			Modifier to protect an initializer function from being invoked twice
