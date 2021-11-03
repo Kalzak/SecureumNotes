@@ -107,4 +107,214 @@ SWC-115
 	Title
 		Authorization through tx.origin
 	Description
-		`tx.origin` is a global variable in Solidity which returns the address of the account that 
+		`tx.origin` is a global variable in Solidity which returns the address of the account that sent the TX
+		Using the variable for authorization could make a contract vulnerable if an unauthorized account calls into a malicious
+		  contract
+		A call could be made to the vulnerable contract that passes the authorization check since `tx.origin` returns the
+		  original sender of the TX which in this case is authorized account
+SWC-116
+	Title
+		Block values as a proxy for time
+	Description
+		Contracts often need access to time value to perform certoin types of functionality
+		Values sich as `block.timestamp` and `block.number` can give you a sense of the current time or a time delta, however
+		  they are not safe to use for must purposes
+		Malicious miners can have some effect on `block.timestamp`
+		Malicious users can influence `block.number` by timing TXs
+SWC-117
+	Title
+		Signature Malleability
+	Description
+		The implementation of a crypographic signature system in Ethereum contracts often assumes that the signature is unique,
+		  but signatures can be altered without the posession of the private key and still be valid
+		The EVM specification defines several so-called 'pre-compiled' contracts one of them being `ecrecover` which executes
+		  the elliptic curve public key recovery
+		A malicious user can slightly modify the three values `v`, `r`, `s` to create other valid signatures
+		A system that performs signature verification on contract level might be susceptible to attacks if the signature is
+		  part of the signed message hash
+		Valid signatures could be created by a malicious user to replay previously signed messages
+SWC-118
+	Title
+		Incorrect Constructor Name
+	Description
+		Constructors are special functions that are called only once during the contract creation
+		They often perform critical, privileged actions such as setting the owner of the contract
+		Before Solidity 0.4.22, the only way of defining a constructor was to create a function with the same name as the
+		  contract class containing it
+		A function meant to become a constructor becomes normal, callable function if its name doesn't exactly match the
+		  contract name
+		This behaviour sometimes leads to security issues, in particular when smart contract code is re-used with a different
+		  name but the name of the constructor is not changed accordingly
+SWC-119
+	Title
+		Shadowing State Variables
+	Descriptions
+		Solidity allows for ambigious naming of state variables when inheritance is used
+		Contract `A` with variable `x` could inherit contract `B` that also has a state variable `x` defined
+		This would result in two separate versions of `x`, one of them being accessed from contract `A` and the other one from
+		  contract `B`
+		In more complex contract systems this condition could go unnoticed and subsequently lead to security issues
+SWC-120
+	Title
+		Weak Sources of Randomness from Chain Attributes
+	Descriptions
+		Ability to generate random numbers is very helpful in all kinds of applications
+		One obvious example is gambling dApps, where pseudo-random number generator is used to pick the winner
+		However, creating a strong enough source of randomness in Ethereum is very challenging
+		EG use of `block.timestamp` is insecure, as a miner can choose to provide any timestamp within a few seconds and still
+		  get his block accepted by others
+		Use of `blockhash`, `block.difficulty` and other fields is also insecure as they're controlled by the miner
+		If the stakes are high, the miner can mine lots of blocks in a short time by renting hardware, pick the block that has
+		  the required block hash for him to win, and drop all others
+SWC-121
+	Title
+		Missing Protection against Signature Replay Attacks
+	Descriptions
+		It is sometimes necessary to perform signature verification in smart contracts to achieve better usability or to save
+		  gas cost
+		A secure implementation needs to protect against Signature Replay Attacks by for example keeping track of all processed
+		  message hashes and only allowing new message hashes to be processed
+		A malicious user could attack a contract without such a control and get message hash that was sent by another user 			  processed multiple times
+SWC-122
+	Title
+		Lack of Proper Signature Verification
+	Descriptions
+		It is a common pattern for smart contract systems to allow users to signs messages off-chain instead of directly
+		  requesting users to do an on-chain TX because of the flexibility and increased transferability that this provides
+		You can't just rely on msg.sender to be the actual signer of the message
+		You want to do verification through `ecrecover()`
+SWC-123
+	Title
+		Requirement Violation
+	Descriptions
+		The Solidity `require()` construct is meant to validate external inputs of a function
+		In most cases, such external inputs are provided by callers, but they may also be returned by callees
+		In the former case, we refer to them as 'precondition violations'
+		Violations of a requirement can indicate one of two possible issues
+		1
+			A bug exists in the contract that provided the external input
+		2
+			The condition used to express the requirement is too strong
+SWC-124
+	Title
+		Write to Abitrary Storage Location
+	Description
+		A smart contract's data (EG storing the owner of the contract) is persistently stored at some storage location
+		  (IE a key or address) on the EVM level
+		The contract is responsible for ensuring that only authorized user or CAs may write to sensitive storage locations
+		If an attacker is able to write to arbitrary storage locations of a contract, the authorization checks may easily be
+		  circumvented
+		This can allow an attacker to corrupt the storage; for instance by overwriting a field that stores the address of
+		  the contract owner
+SWC-125
+	Title
+		Incorrect Inheritance Order
+	Description
+		Solidity supports multiple inheritance, meaning that one contract can inherit several contracts
+		Multiple inheritance introduces ambiguity called 'Diamond Problem':
+			If two or more base contracts define the same function, which one should be called in the child contract
+			Solidity deals with this ambiguity by using reverse C3 Linearization, which sets a priority between
+			  base contracts
+		That way, base contracts have different priorities, so the order of inheritance matters
+		Neglecting inheritance order can lead to unexpected behaviour
+SWC-126
+	Title
+		Insufficient Gas Griefing
+	Description
+		Insufficient gas griefing attacks can be performed on contracts which accept data and use it in a sub-call on another
+		  contract
+		If the sub-call fails, either the whole TX is reverted, or execution is continued
+		In the case of a relayr contract, the user who executes the TX, the 'forwarder', can effectively censor TXs by using 
+		  just enough gas to execute the TX, but not enough for the sub-call to succeed
+SWC-127
+	Title
+		Arbitrary Jump with Function Type Variable
+	Description
+		Solidity supports function types
+		That is, a variables of function type can be assigned with a reference to a function with a matching signature
+		The function saved to such variable can be called just like a regular function
+		The problem arises when a user has the ability to arbitrarily change the function type variable and thus execute random
+		  code instructions
+		As Solidity doesn't support pointer arithmetic, it's impossible to change such variables to an arbitrary value
+		However, if the developer uses assembly instructions, such as `mstore`, or assign operator, in the worst case scenario
+		  an attacker is able to point a function type variable to any code instruction, violating required validations and 
+		  required state changes
+SWC-128
+	Title
+		DoS with Block Gas Limit
+	Description
+		When smart contracts are deployed or functions inside them are called, the execution of these actions always requires 
+		  a certain amount of gas, based of how much computation is neede to complete them
+		The Ethereum network specifies a block gas limit and the sum of all TXs included in a block can not exceed the threshold
+		Programming patterns that are harmless in centralized applications can lead to DOS conditions in SCs when the cost of 
+		  executing a function exceeds the block gas limit
+		Modifying an array of unknown size, that increases in size over time, can lead to such a DOS condition
+SWC-129
+	Title
+		Typegraphical error
+	Description
+		A typographical error can occur for example when the intent of a defined operation is to sum a number to a variable (+=)
+		  but it has accidentally been defined in a wrong way (=+), introducing a type which happens to be a valid operator
+		Instead of calculating the sum it initializes the variable again
+		The unary + operator is deprecated in new Solidity compiler versions
+SWC-130
+	Title
+		Right-To-Left-Override control character (U+202E)
+	Description
+		Malicious actors can use the Right-To-Left-Override unicode character to force RTL text rendering and confuse users as
+		  to the real intent of a contract
+SWC-131
+	Title
+		Presence of unused variables
+	Description
+		Unused variables are allowed in Solidity and they do not pose a direct security issue
+		It is best practice though to avoid them as they can
+			Cause an increase in computations (and uncessecary gas consumption)
+			Indicate bugs or malformed data structures and they are generally a sign of poor code quality
+			Cause code noise and decrease readability of the code
+SWC-132
+	Title
+		Unexpected Ether balance
+	Description
+		Contracts can behave erroneously when they strictly assume a specific Ether balance
+		It is always possible to forcibly send ether to a contract (without triggering its fallback function), using 
+		  selfdestruct, or by mining to the account
+		In the worst case scenario this could lead to DOS conditions that might render the contract unusable
+SWC-133
+	Title
+		Hash Collisions With Multiple Variable Length Arguments
+	Description
+		Using `abi.encodePacked()` with multiple variable length arguments can, in certain situations, lead to a hash collision
+		Since `abi.encodePacked()` packs all elements in order regardless of whether they're part of an array, you can move 
+		  elements between arrays and, so long as all elements are in the same order, it will return the same encoding
+		In a signature verification situation, an attacker could exploit this my modifying the position of elements in 
+		  a previous function call to effectively bypass authorization
+SWC-134
+	Title
+		Message call with hardcoded gas amount
+	Description
+		The `transfer()` and `send()` functions forward a fixed amount of 2300 gas
+		Historically it has often been recommended to use these functions for value transfers to guard transfers to guard 
+		  against reentrancy attacks
+		However the gas cost of EVM instructions may change significantly during hard forks which may break already deployed
+		  contract systems that make fixed assumptions about gas costs
+		EG EIP1884 broke several existing smart contracts due to a cost increase of the SLOAD instruction
+SWC-135
+	Title
+		Code With No Effects
+	Description
+		In Solidity, it's possible to write code that does not produce the intended effect
+		Currently, the solidity compiler will not return a warning for effect-free code
+		This can lead to the introduction of 'dead' code that does not properly performing an intended action
+		EG it's easy to miss the trailing parenthesis in `msg.sender.call.value(address(this).balance)("");`, which
+		  could lead to a function proceeding without transferring funds to `msg.sender`
+		Although, this should be avoided by checking the return value of the call
+SWC-136
+	Title
+		Unencrypted Private Data On-Chain
+	Description
+		It is a common imsconception that `private` type variables cannot be read
+		Even if your contract is not published, attackers can look at contract TXs to determine values stored in the state of
+		  the contract
+		for this reason, it's important that unencrypted private data is not stored in the contract code or state
+	
