@@ -1,0 +1,26 @@
+Content
+	Article
+		https://secureum.substack.com/p/security-pitfalls-and-best-practices-201
+	Youtube
+		https://youtu.be/WGM1SF8twmw
+		https://youtu.be/HqHo1jKUnmU
+		https://youtu.be/pXoEIjHupXk
+		https://youtu.be/IVbEIbIpWUY
+		https://youtu.be/QSsfkmcdbPw
+Quiz
+	Link
+		https://www.classmarker.com/online-test/start/?quiz=x7a617a63c7dce6f
+	Details
+		8 questions
+		16 minutes
+		Given a contract to read and all questions are based on the contract
+Assignments
+	Read
+		https://samczsun.com/so-you-want-to-use-a-price-oracle/ 
+		https://samczsun.com/the-dangers-of-surprising-code/
+	Watch
+		https://www.youtube.com/watch?v=gfD1KBtLWZI
+		https://www.youtube.com/watch?v=yP01yH4plT8
+		https://www.youtube.com/watch?v=Df2zzfoTfMc
+	Attempt
+		https://www.damnvulnerabledefi.xyz/
