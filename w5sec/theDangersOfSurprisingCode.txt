@@ -1,0 +1,41 @@
+Article is about the 'Principle of least astonishment'
+	The idea is when presented with code that claims to do something, most users will make assumptions regarding how it behaves to 
+	  get that thing done
+	As such, your job as the developer is to write your code to match those assumptions so that your users don't get a 
+	  nasty surprise
+	It's a good principle to follow because developers like making assumptions about things
+	If you expoct a function called `calculateScore(GameState)`, a lot of people are going to rightly assume that the function 
+	  would only read from game state
+		You'll surprise a lot of very confused people trying to figure out why their game state is randomly getting corrupted
+		Even if you put it in the docs, no guarantee that all people will see it
+Safer is better, right?
+	When ERC721 was being drafted a suggestion was made to implement transfer security to ensure that tokens wouldn't be stuck in 
+	  recpient contracts that weren't designed to handle them
+	To do this, the proposal authors modified the behaviour of the `transfer` function to check the recipient for whether they were
+	  capable of supporting the token transfer
+	They also introduced `unsafeTransfer` function which would bypass this check, should the sender so desire
+	However due to concerns about backwards compatibility the functions were renamed is a subsequent commit
+	This made `transfer` behave the same for both an ERC20 and ERC721 token
+	However now the recipient checking needed to be moved elsewhere, so the `safeTransfer` and `safeTransferFrom` was introduced
+	
+Safer is better, right?
+	Different parties have different interpretations of 'safety'
+		User: Not shoot themselves in the foot
+		Dev: Doesn't contain bugs or introduce additional security concerns
+	In the case of ERC721, the safe functions are more for the user and not really dev focused
+	The function call to check if ERC721 is supported has to make an external call to the recipient (potential reentrancy)
+	What's the worst that could happen from allowing a recipient contract to reject a transfer that they weren't able to process???
+	Yeah you're about to find out
+Hashmasks
+	Hashmasks are NFTs with a limited supply
+	Users were able to purchase up to 20 masks per TX, although they've been sold out for months already
+	Look at the function to buy masks here: https://samczsun.com/the-dangers-of-surprising-code/
+	The code is all good but it calls `safeMint` which checks if the address implements ERC721
+		Reentrancy is possible to call the function again
+		This way you can mint 39 tokens (20 + 19)
+	For '''safety''', `safeMint` does a callback to the recipient of the token to check that they're willing to accept the transfer
+	However we're the recipient of the token which means we just got a callback and now we can do whatever we like including
+	  calling `mintNFT` again
+		If we do re-enter the function after only one has been minted, we still can mint another 19
+ENS Name Wrapper
+	Another re-entrancy

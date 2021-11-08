@@ -1,0 +1,106 @@
+What is decentralized lending
+	Traditional lending
+		When you take out a loan you need to provide some kind of collateral
+		If you default on the loan the sender can seize the collateral
+		To determine how much collateral you need to supply the sender typically knows or can reliably calculate the fair
+		  market value (FMV) of the collateral
+	In decentralized lending the same process occurs except the lender is now a smart contract that is isolated from outside world
+		This means it can't simply 'know' the FMV of whatever collateral you're trying to provide
+	To solve this problem, developers instruct the smart contract to query an oracle which accepts the address of a token and 
+	  returns the current price of that token in a desired currency (EG ETH or USD)
+	Different DeFi projects have taken different approaches to implementing this oracle, but they can generally all be classified
+	  in one of five ways (although some implementations blur the lines more than others)
+	1) Off-chain Centralized Oracle
+		This type of oracle simply accepts new prices from an off-chain source, typically an account controlled by the project
+		Due to the needs to quickly update the oracle with new exchange rates, the account is typically an EOA and not a 
+		  multisig
+		There may be some sanity checking to ensure that prices don't fluctuate too wildly
+		Compound Finance and Synthetix mainly use this type of oracle for most assets
+	2) Off-chain decentralized Oracle
+		This type of oracle accepts new prices from multiple off-chain sources and merges the values through a mathematical 
+		  function, such as an average
+		In this model, a multisig wallet is typically used to manage the list of authorized sources
+		Maker uses this type of oracle for ETH and other assets
+	3) On-chain centralized oracle
+		This type of oracle determines the price of assets using an on-chain source, such as a DEX
+		However, only a central authority can trigger the oracle to read from the on-chain source
+		Like an off-chain centralized oracle, this type of oracles requires rapid updates and as such the triggering account is
+		  likely an EOA and not a multisig
+		dYdX and Nuo use this type of oracle for certain assets
+	4) On-chain decentralized Oracle
+		This type of oracle determines the price of assets using an on-chain source, but can be updated by anyone
+		There may be some sanity checking to ensure that prices don't fluctuate too wildly
+		DDEX uses this type of oracle for DAI, while bZx uses this type of oracle for all assets
+	5) Constant oracle
+		This type of oracle simply returns a constant value, and is typically used for stablecoins
+		Nearly all projects mentioned above use this type of oracle for USDC due to its guaranteed peg
+The problem
+	It is possible to make a huge trade, use a function that checks the price oracle, then execute another huge trade synchronously
+	  using smart contracts
+	This means that the attacker only loses fees and can't get arbed
+	It's important to note that this problem exists for any oracle which can provide the FMV on-chain, not just Uniswap
+	In general, if a price oracle is completely decentralized then an attacker can manipulate price at a specific instant with
+	  minimal to no loss in slippage fees
+	If an attacker can then convince a DeFi dApp to check the orace at the instant when the apparent price has been manipulated, 
+	  then they can cause significant harm to the system
+	In the case of DDEX and bZx, it was possible to take out a loan that appeared to be sufficiently collateralized, but was 
+	  in fact undercollateralized
+DDEX (Hydro Protocol)
+	DDEX is a DEX platform but are in the process of expanding into decentralized lending so that they can offer their users the
+	  ability to create leveraged long and short positions
+	They're currently beta testing their decentralized margin exchange
+	On Sep9th2019 DEEX added DAI as an asset to their margin trading platform and enabled the ETH/DAI market
+	For the Oracle, they specified a smart contract that returns the value of DAI/USD by calculating...
+		PriceOfETHInUSD/PriceOfETHInDAI
+			The value of ETH/USD is read from the Maker oracle
+			The value of ETH/DAI is read from either Eth2Dai or if the spread is too great, Uniswap
+	In order to trigger an update and cause the oracle to refresh its stored value, a user simple has to call `updatePrice()`
+	THE ATTACK
+		Let's assume we can manipulate the apparent value of DAI/USD
+		If this is the case, we would like to use this to borrow all of the ETH in the system while providing as little DAI
+		  as possible
+		To achieve this, we can either lower the apparent value of ETH/USD or increase the apparent value of DAI/USD
+		Since we're already assuming that the apparent value of DAI/USD is manipulable, we'll choose the latter
+		To increase the apparent value of DAI/USD, we can either increase the apparent value of ETH/USD, or decrease the 
+		  apparent value of ETH/USD
+		For all intents and purposes manipulating the Maker's oracle is impossible, so we'll try decreasing the apparent value
+		  of ETH/DAI
+		The oracle will calculate the value of ETH/DAI as reported by Eth2Dai by taking the average of the current asking price
+		  and the current bidding price
+		In order to decrease this value, we'll need to lower the current bidding price by filling existing orders and then
+		  lower the current asking price by placing new orders
+		However, this requires a significant initial investment (as we need to fill the orders then make an equivalent number
+		  of orders) and is non-trivial to implement
+		On the other hand, we can drop the Uniswap price simply by selling a large amount of DAI to Uniswap
+		As such, we'll aim to bypass the Eth2Dai logic and maniputale the Uniswap price
+		In order to bypass Eth2Dai, we need to manipulate the price of the spread
+		We can do this in one of two ways
+			1
+				Clear out one side of the orderbook while leaving the other alone
+				This causes spread to increase positively
+			2
+				Force a crossed orderbook by listing an extreme buy or sell order
+				This causes spread to decrease negatively
+		While option 2 would result in no losses from taking unfavorable orders, the use of SafeMath disallows a crossed
+		  orderbook and as such is unavailable to us
+		Instead, we'll force a large positive spread by clearing out one side of the orderbook
+		This will cause the DAI oracle to fallback to Uniswap to determine the price of DAI
+		Then, we can cause the Uniswap price of DAI/ETH to drop by buying a large amount of DAI
+		Once the apparent value of DAI/USD has been manipulated, it's trivial to take out a loan like as usual
+	Demo
+	The following script will turn a profit of approximately 70 ETH by...
+		1
+			Clearing out Eth2Dai's sell orders until the spread is large enough that the oracle rejects the price
+		2
+			Buying more DAI from Uniswap, dropping the price from 213DAI/ETH to 13DAI/ETH
+		3
+			Borrowing all the available ETH (~120) for a small amount of DAI (~2500)
+		4
+			Selling the DAI we bought from the Uniswap back to Uniswap
+		5
+			Selling the DAI we bought from Eth2Dai back to Eth2Dai
+		6
+			Resetting the oracle (don't want anyone else abusing our favorable rates)
+	Just look at the script online
+		https://samczsun.com/taking-undercollateralized-loans-for-fun-and-for-profit/
+	

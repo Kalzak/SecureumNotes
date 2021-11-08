@@ -1,0 +1,159 @@
+What is a price oracle
+	It is anything that you consult for price information
+	On Ethereum where everything is a smart contract, so too are price oracles
+	It's more useful to distinguish between how the price oracle gets its information
+	There are two approaches
+		Get existing off-chain price data from price APIs or exchanges and bring it on-chain
+		Calculate the instantaneous price by consulting on-chain decentralized exchanges
+	Both approaches have respective advantages and disadvantages
+		Off-chain is generally slower to react to volatility and requires trust for the entities that push the data on-chain
+		  that they don't misprice maliciously
+		On-chain doesn't require any privileged access and is always up-to-date, but this means that it's easily manipulated
+		  by attackers which can lead to capastrophic failures
+Cases where poorly integrated price oracles resulted in financial damage
+	Synthetix sKRW Oracle Malfunction
+		Synthetix is a derivatives platform which allows users to be exposed to assets such as other currencies
+		To facilitate this, Synthetix (at the time) relied on a custom off-chain price feed implementation wherein aggregate
+		  price calculated from a secret set of price feeds was posted on-chain at a fixed interval
+		These prices then allowed users to take long or short positions against supported assets
+		On June 25 2019, one of the price feeds that Synthetix relied on mis-reported the price of the Koream Won to be 1000x
+		  higher than the true rate
+		Due to additional errors elsewhere in the price oracle system, this price was accepted by the system and posted on-chain
+		  where a trading bot quickly traded in and out of the sKRW market
+		In total the bot was able to earn a profit of over 1B USD, although the Synthetix team was able to negatiate with the
+		  trader to return the funds in exchange for a bug bounty
+		Synthetxic correctly implemented the oracle contract and pulled prices from multiple sources in order to prevent traders
+		  from predicting changes before they were published on-chain
+		However an isolated case of one upstream price feed malfunctioning resulted in a devastating attack
+		This illustrates the risk of using a price oracle which uses off-chain data; you don't know how the price is calculated
+		  so your system must be carefully designed such that all potential failure modes are handled properly
+Undercollateralized Loans
+	Imagine you want to bring decentralized lending to the blockchain
+	Users are allowed to deposit assets as collateral and borrow other assets up to a certain amount
+		The certain amount is determined by the value of the assets they've deposited
+	Assume a user wants to borrow USD using ETH as collateral
+		Current price of ETH is 400USD
+		Collateralization ratio is 150%
+	If user deposits 375ETH, they'll have deposited 150,000USD of collateral
+		They can borrow 1USD for every 1.5USD of collateral, so they'll be able to borrow a maximum of 100,00USD from the system
+	On the blockchain, you can't just say that 1ETH == 400USD because a malicious user could simply declare 1ETH == 1000USD and
+	  take all the money from the system
+	It's tempting for developers to reach for the nearest price oracle shaped interface, such as current spot price on Uniswap
+		Seems like correct thing to do, but spot price on DEX can be wildly incorrect during a TX as shown below
+			Consider how Uniswap reserve functions
+			Price is calculated based on amount of assets held by reserve, but assets held by reserve changes as users trade
+			  between ETH and USD
+			What if malicious user performs a trade before and after taking a loan on your platform?
+			Before user takes out loan, they buy 5,000ETH for 2,000,000USD
+			The uniswap exchange now calculated price to be 1ETH = 1,733.33 USD
+			Now their 375ETH can act as collateral for up to 433,333.33USD worth of assets, which they can borrow
+			Finally they trade back the 5,000ETH for their original 2,000,000USD which reset the price
+			Result is your loan platform just allowed the user to borrow and additional 333,333.33USD without putting
+			  up any more collateral
+	This case study shown the most common mistake when using a DEX as a price oracle - an attacker has almost full control over 
+	  the price during a TX and tring to read that price accurately is like reading the weight on a scale before it's settled
+	You'll probably get wrong number and depending on the situation it might cost you a lot of money
+Synthetix MXR Maniuplation
+	In Dec2019 Synthetix suffered another attack as a result of price oracle manipulation
+	This incident crossed the barrier between on-chain price data and off-chain price data
+	At attacker was making suspiciout trades against sMKR and iMKR (inverse MXR)
+		1
+			Bought long position MKR (by buying sMKR)
+		2
+			Purchased large quantities of MKR from Uniswap ETH/MKR pair
+		3
+			Waits a bit, then sells their sMKR for iMKR
+		4
+			Sells their MKR back to Uniswap
+		5 
+			Repeat the process
+	This happened likely because the off-chain price feed that synthetix relied on what isfact relying on the on-chain price of MKR
+	There wasn't enough liquidity for arbitrageurs to reset the market back to optimal conditions
+The bZx Hack
+	Feb2020, bZx was hacked twice over several days for approx. 1MM USD
+	We only care about second hack
+		Attacker purchased early all of the sUSD on Kyber using ETH
+		Attacker then purchased a second batch of sUSD from Synthetix itself and deposited it on bZx
+		Using the sUSD as collateral, attacker borrowed the max amount of ETH allowed
+		Then sold back sUSD to Kyber
+	If paying attention you'll recognize it's essentially same as undecollateralized loan attack, but using different collateral
+	  and a different decentralized exchange
+yVault Bug
+	yVault system allows users to deposit a token and earn yield on it without needing to manage it themselves	
+	Internally, vault tracks total amount of yVault tokens minted as well as the total amount of underlying tokens deposited
+	The worth of a single yVault token is given by the ratio of tokens minted to tokens deposited
+	Any yield the vault earns is spread across all minted yVault tokens (and therefore, across all yVault token holders)
+	The first yVault allowed users to earn yield on USDC by supplying liquidity to the Balance MUSD/USDC pool
+	When a user supplied liquidity to Balancer pools, they receive BPT in return which can be redeemed for a proportion of the pool
+	As such, the yVault calculated the value of its holdings based on the amount of MUSD/USDC which could be redeemed with its BPT
+	ISSUE
+		The state of the balancer pool during a TX is not stable and cannot be trusted	
+		Because of the bonding curve that Balancer chose, a user who swaps between from USDC to MUSD will not receive a 1:1
+		  exchange rate, but will in fact leave behind some MUSD in the pool
+		This means that the value of BPT can be temporarily inflated, which allows an attacker to manipulate the price at will
+		  and subsequently drain the vault
+Harvest Finance Hack
+	Oct2020 unknown user hacked Harvest Finance pools using a technique that you can probably guess by now
+	Steps
+		1
+			Attacker deflated price of USDC in Curve pool by performing a trade
+		2
+			Entered the Harvest pool at reduced price
+		3
+			Restored the price by reversing the earlier trade
+		4
+			Exited the Harvest pool at a higher price
+	Resulted in over 33MM USD of losses
+How do I protect myself?
+	It's not always obvious that you're using a price oracle and if you don't follow the proper precautions, an attacker could
+	  trick your protocol into sending them all your money
+	While there's no one-size-fits-all fix that can be prescribed, here are a few solutions that have worked for other projects
+	  in the past
+	SOLUTIONS
+	1) Shallow markets, no diving
+		Like diving into the shallow end of a pool, diving into a shallow market is painful and might result in significant
+		  expenses which will change your life forever
+		Before you even consider the intricacies of the specific price oracle you're planning to use, consider whether the 
+		  token is liquid enough to warrant integration with your platform
+	2) A Bird in the Hand is Worth Two in the Bush
+		It may be mesmerizing to see the potential exchange rate of Uniswap, but nothing's final until you actually click trade
+		  and the tokens are sitting in your wallet
+		Similarly, the best way to know for user the exchange rate between two assets is to simply swap the assets directly
+		This approach is great because there's no take-backs and no what-ifs
+		However, it may not work for protocols such as lending platforms which are required to hold on to the original asset
+	3) Almost Decentralized Oracles
+		One way to summarize the problem with oracles is that they're a 'little too up to date'
+		If that's the case, why not introduce a bit of artificial delay?
+		Write a contract which updates itself with the latest price from Uniswap, but only when requested by a small group of
+		  privileged users
+		Now even if an attacker can manipulate the price, they can't get your protocol to actually use it
+		This is simple to implement and is a quick win but...
+			In time of chain congestion you might not be able to update price as quickly as you'd like
+			You're still vulnerable to sandwich attacks
+			Now your users need to trust that you'll actually keep the price updated
+	4) Speed bumps
+		Manipulating oracles is a time-sensitive operation because arbitraguers are always watching and would love the
+		  opportunity to optimize any suboptimal markets
+		If an attacker want to minimize risk, they'll want to do the two trades required to manipulate a price oracle in a 
+		  single TX so there's no chance that an arbitrageur can jump in the middle
+		As a protocol developer, if you system supports it, it may be enough to simply implement a delay of as short as 1 block
+		  between a user entering and exiting your system
+		This might impact composabilitiy and miner collaboration with traders is on the rise
+		In future, may be possible for bad actors to perfom price oracle manipulation across multiple TXs knowing that the miner
+		  they've partnered with will guarantee that no-one can jump in the middle and take a bite out of their earnings
+	5) Time-weighted Average Price (TWAP)
+		Uniswap V2 introduced a TWAP oracle for on-chain developers to use
+		The documentation goes into more detail on the exact security guarantees that the oracle provides, but in general for 
+		  large pools over a long period of time with no chain congestion, the TWAP oracle is highly resistant to oracle 
+		  manipulation attacks
+		However due to the nature of its implementation, it may not respond quickly enough to moments of high market volatility
+		  and only works for assets for which there is already a liquid token on-chain
+	6) M-of-N reporters
+		Gather N trusted friends and ask them to submit what they think right on-chain price is
+		The best M answers become the current price
+		You're effectively delegating your trust to a third party and your users will have to do the same
+		Since you're relying on reporters you might get prices later than you'd like when on-chain is congested
+Conclusion
+	Price oracles are critical but ofter overlooked component of DeFi security
+	Safely using price oracles is hard and there are plenty of ways to self-rekt
+	
