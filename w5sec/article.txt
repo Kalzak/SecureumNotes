@@ -439,7 +439,8 @@
 195
 	Principle of Fail-safe defaults
 	'Base access decisions on permission rather than exclusion'
-	Ensure that variables or permissions are initialized to fail-safe default values which can be made more inclusivg later instead		  of opening up the system to everyone including untrusted actors
+	Ensure that variables or permissions are initialized to fail-safe default values which can be made more inclusivg later instead
+	  of opening up the system to everyone including untrusted actors
 196
 	Principle of Complete mediation
 	'Every access to every object must be checked for authority'
