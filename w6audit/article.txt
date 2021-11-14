@@ -189,3 +189,712 @@
 	Per OWASP, this estimates the magnitude of the techincal and business impact on the system if the vulnerability were to be
 	  exploited
 	OWASP proposes three impact levels of low, medium and high
+17
+	Audit findings severity
+	Per OWASP, the likelihood estimate and the impact estimate are put together to calculate an overall severity for this risk
+	This is done by figuring out whether the likelihood is low, medium or high and then do the same for impact
+	1
+		OWASP proposes a 3x3 severity matrix which combines the three likelihood levels with the three impact levels
+	2
+		Severity matrix
+		(imagine the following as a 3x3 matrix)
+		(likelihood & impact = SEVERITY)
+		--------------------------------------------------------------------------------------
+		low & low = NOTE		medium & low = LOW		high & low = MEDIUM
+		low & medium = LOW		medium & medium = MEDIUM	high & medium = HIGH
+		low & high = MEDIUM		medium & high = HIGH		high & high = CRITICAL
+		--------------------------------------------------------------------------------------
+	3
+		Trail of bits uses
+		1) Informational
+			The issue does not pose an immediate risk, but is relevant to security best practices or Defense in Depth
+		2) Undetermined
+			The extent of the risk was not determined during this engagement
+		3) Low
+			The risk is relatively small or is not a risk the customer has indicated is important
+		4) Medium
+			Individual user's information is at risk, expoitation would be bad for client's reputation, moderate financial
+			  impact, possible legal implications for the client
+		5) High
+			Large numbers of users, very bad for client's reputation, moderate financial impact, possible legal implications
+			  for client
+	4
+		ConsenSys uses
+		1) Minor
+			Issues are subjective in nature
+			They are tpyically suggestions around best practices or readability
+			Code maintainers should use their own judgement as to whether to address such issues
+		2) Medium
+			Issues are objective in nature but are not security vulnerabilities
+			These should be addressed unless there is a clear reason not to
+		3) Major
+			Issues are security vulnerabilities that may not be directly expoitable or may require certain conditions in
+			  order to be exploited
+			All major issues should be addressed
+		4) Critical
+			Issues are directly exploitable security vulnerabilities that need to be fixed
+18
+	Audit checklist for projects (see https://blog.trailofbits.com/2018/04/06/how-to-prepare-for-a-security-audit) for
+	  'Trail of Bits' (ToB) recommendations
+		1) Resolve the easy issues
+			1) Enable and address every last compiler warning
+			2) Increase unit and feature test coverage
+			3) Remove dead code, stale branches, unused libraries and other extraneous weight
+		2) Document
+			1) Describe...
+				What you product does
+				Who uses it
+				Why they use it
+				How it delivers
+			2) Add comments about intended behaviour in-line with the code
+			3) Label and describe your tests and results, both positive and negative
+			4) Include past reviews and bugs
+		3) Deliver the code batteries included (??? what is code battery ???)
+			1) Document the steps to create a build environment from scratch on a computer that is fully disconnected from
+			  your intenal network
+			2) Include external dependencies
+			3) Document the build process, including debugging and the test environment
+			4) Document the deployment process and environment, including all the specific versions of external tools and 
+			  libraries for this process
+19
+	Audit techniques
+	Involve a combination of different methods that are applied to the project codebase with accompanying specification and 
+	  documentation
+	Many are automated analyses performed with tools and some require manual assistance
+		1
+			Specification analysis (manual)
+		2
+			Documentation analysis (manual)
+		3
+			Testing (automated)
+		4
+			Static analysis (automated)
+		5
+			Fuzzing (automated)
+		6
+			Symbolic checking (automated)
+		7
+			Formal verification (automated)
+		8
+			Manual analysis (manual)
+	One may think of these as manual/semi-automated/fully-automated, where the discinction between semi-automated and 
+	  fully-automated is the difference between a tool that requires a user to define properties vs. a tool that requires (almost)
+	  to user configuration except to triage results
+	Fully-automated tools tend to be straightforward to use, while semi-automated tools require some human assistantce and 
+	  therefore are more resource-expensive
+20
+	Specification analysis
+	Specification describes in detail what (and sometimes why) the project and its various components are supposed to do 
+	  functionally as part of their design and architecture
+	1
+		From a security perspective, it specifies what the assets are, where they are held, who are the actors, priviliges of
+		  actors, who is allowed to access what and when, trust relationships, threat model, potential attack vectors, 
+		  scenarios and mitigations
+	2
+		Analysing the specification of a project provides auditors with the above details and lets them evaluate the assumptions
+		  made and may indicate any shortcomings
+	3
+		Very few smart contract projects have detailed specifications at their first audit stage
+		At best, they have some documentation about what is implemented
+		Auditors spend a lot of time inferring specification from documentation/implementation which leaves them with less time
+		  for vulnerability assessment
+21
+	Documentation analysis
+	Documentation is a description of what has been implemented based on the design and architectural requirements
+	1
+		Documentation answers 'how' something has been designed/achitected/implemented without necessarily addressing the 'why'
+		  and the design/requirement goals
+	2
+		Documentation is typically in the form of Readme files in the Github repositore describing individual contract 
+		  functionality combined with functional NatSpec and individual code comments
+	3
+		Documentation in many cases serves as a substitute for specification and provides critical insights into the 
+		  assumptions, requirements and goals of the project team
+	4
+		Understanding the documentation before looking at the code helps auditors save time in inferring the architecture of
+		  the project, contract interactions, program constraints, asset flow, actors, threat model and risk mitigation
+		  measures
+	5
+		Mismatches between the documentation and the code could indicate stale/poor documentation, software defects or security
+		  vulnerabilities
+	6
+		Auditors are expected to encourage the project team to document thoroughly so that they do not need to waste their time
+		  inferring this by reading code
+22
+	Testing
+	Software testing or validation is a well-known fundamental seftware engineering primitive to determine if software produces
+	  expected outputs when executed with different chosen inputs
+	1
+		Smart contract testisg has a similar motivation but is arguably more compilcated despite their relatively smaller sizes
+		  (in LoC) compared to Web2 software
+	2
+		Smart contract development platforms (Truffle, Embark, Brownie, Waffle, Hardhat etc) are relatively new with different
+		  levels for support for testing
+	3
+		Projects, in general, have very little testing done at the audit stage
+		Testiing integrations and composability with mainnet contracts and state is non-trivial
+	4
+		Test coverage and test cases give a good indication of project maturity and also provide valuable insights to
+		  auditors into assumptions/edge-cases for vulnerability assessments
+	5
+		Auditors should expect a high-level of testing and coverage because this is a must-have softeng discipline, especially
+		  when smart contracts that are by-design exposed to everyone on the blockchain and end up holding assets worth
+		  tens of millions of dollars
+	6
+		"Program testing can be used to show the presence of bugs, but never to show their absence!"
+		  - E.W. Dijkstra
+23
+	Static analysis
+	Is a technique of analying program properties without actually executing the program
+	1
+		This is in contrast to software testing where programs are actually executed/run with different inputs
+	2
+		For smart contracts, static analysis can be performed on the Solidity code or on the EVM bytecode
+		'Slither' performs static analysis at the Solidity level while 'Mythril' analyzes EVM bytecode
+	3
+		Static analysis typically is a combination of control flow and data flow analyses
+24
+	Fuzzing
+	Aka 'fuzz testing' is an automated software testing technique that involves providing invalid, unexpected, or random data as 
+	  inputs to a computer program
+	The program is then monitored for exceptions such as crashes, failing built-in code assertions, or potential memory leaks
+	1
+		Fuzzing is especially relevant to smart contracts because anyone can interact with them on the blockchain with random
+		  inputs without necessarily having a valid reason or expectation (arbitrary byzantine behaviour)
+	2
+		'Echidna' and 'Harvey' are two popular tools for smart contract fuzzing
+25
+	Symbolic checking
+	Is a technique of checking for program correctness
+	IE proving/verifying, by using symbolic inputs to represent set of states and transitions instead of enumerating individual
+	  states/transitions separately
+	1
+		Model checking or property checking is a method for checking whether a finite-state model of a system meets a given
+		  specification (also known as correctness)
+	2
+		In order to solve such a problem algorithmically, both the model of the system and its specification are formulated
+		  in some precise mathematical language
+		To this end, the problem is formulated as a task in logic, namely to check whether a structure satisfies a given logical
+		  formula
+	3
+		A simple model-checking problem consists of verifying whether a formula in the propositional logic is satisfied by a 
+		  given structure
+	4
+		Instead of enumerating reachable states one at a time, the state space can sometimes be traversed more efficiently by
+		  considering large numbers of states as a single step
+		When such state space traversal is based on representations of a set of states and transition relations as logical
+		  formulas, binary decision diagrams (BDD) or other related data structures, the model-checking method is symbolic
+	5
+		Model-checking tools face a combinatorial blow up of the state-space, commonly known as the state explosion problem,
+		  that must be addressed to solve most real-world problems
+	6
+		Symbolic algorithms avoid explicitly constructing the graph for the finite state machines (FSM)
+		Instead, they represent the graph implicitly using a formula in quantified propositional logic
+26
+	Formal verification
+	Is the act of proving or disproving the correctness of intended algorithms underlying a system with respect to a certain formal
+	  specification or property, using the formal methods of mathematics
+	1
+		Formal verification is effective at detecting complex bugs which are hard to detect manually or using simpler
+		  automated tools
+	2
+		Formal verification needs a specification of the program being verified and techniques to translate/compare the
+		  specification with the actual implementation
+	3
+		`Certora`'s Prover and `ChainSecurity`'s VerX are examples of formal verification tools for smart contracts
+		`KEVM` from `Runtime Verification Inc` is a formal verification framework that models EVM semantics
+27
+	Manual analysis
+	Is complimentary to automated analysis using tools and serves a critical need in smart contract audits
+	1
+		Automated analysis using tools is cheap (typically open-sounce free software), fast, deterministic and scalable
+		  (varies depending on the tool being semi or fully automated) but however is only as good as the properties it is made
+		  aware of, which is typically limited to Solidity and EVM related constaints
+	2
+		Manual analysis with humans, in contrast, is expensive, slow, non-deterministinc and not scalable because human 
+		  expertise in smart contract security is a rare/expensive skill set ttoday and we are slower, prone to error and
+		  inconsistent
+	3
+		Manual analysis is however the only way today to infer and evaluate business logic and application-level constaints
+		  which is where a majority of the serious vulnerabilities are being found
+28
+	False positives
+	Are findings which indicate the presence of vulnerabilities but which in fact are not vulnerabilities
+	Such false positives could be due to incorrect assumptions or simplifications in analysis which do not correctly consider all
+	  the factors required for the actual presence of vulnerabilities
+	1
+		False positives require further manual analysis on findings to investigate if they are indeed false or true positives
+	2
+		High number of false positives increases manual effort in verification and lowers the confidence in the accuracy of the
+		  earlier automated/manual analysis
+	3
+		True positives might sometimes be classified as false positives which leads to vulnerabilities being exploited instead
+		  of being fixed
+29
+	False negatives
+	Are missed findings that should have indicated the presence of vulns but which are in fact not reported at all
+	Such false negatives could be due to incorrect assumptions or inaccuracies in analysis which do not correctly consider the 
+	  minimum factors required for actual presence of vulns
+	1
+		False negatives, per definition, are not reported or even realized unless a different analysis reveals their presence
+		  or the vulns are exploited
+	2
+		High number of false negatives lowers the confidence in the effectiveness of the earlier manual/automated analysis
+30
+	Audit firms
+	The following is a list of audit firms (popular ones but not all)
+	ABDK
+	Arcadia
+	Beosin
+	Blockchain Consilium
+	BlockSec
+	CertiK
+	ChainSafe
+	ChainSecurity
+	Chainsulting
+	CoinFabrik
+	ConsenSys Diligence
+	Dedaub
+	G0
+	Hacken
+	Haechi
+	Halborn
+	HashEx
+	Iosiro
+	Least Authority
+	MixBytes
+	NCC
+	NewAlchemy
+	OpenZeppelin
+	PeckShield
+	Pessimistic
+	PepperSec
+	Pickle
+	Quantstamp
+	QuillHash
+	Runtime Verification
+	Sigma Prime
+	SlowMist
+	SmartDec
+	Solidified
+	Somish
+	Trail of Bits
+	Zokyo
+31
+	Smart contract security tools
+	Are critical in assisting smart contract developers and auditors with showcasing (potentiall) exploitable vulnerabilities,
+	  highlighting dangerous programming styles or surfacing common patterns of misuse
+	None of these however replace the need for manual review/validation to evaluate contract-specific business logic and other
+	  complex control-flow, data flow & value flow aspects
+32
+	Categories of security tools
+	Tools for... 
+		Testing
+		Test coverage
+		Linting
+		Disassembling
+		Visualization
+		Static analysis
+		Dynamic analysis
+		Formal 
+	  ...verification of smart contracts
+33
+	`Slither` is a Solidity static analysis framework written in Python3
+	It runs a suite of vulnerability detectors, prints visual information about contract details, and provides an API to easily
+	  write custom analyses
+	Slither enables developers to find vulns, enhance their code comprehension, and quickly prototype custom analyses
+	It implements 74 detectors in the publicly available free version (with trophies that showcase Slither findings in real-world
+	  contracts)
+	The trophies are an interesting read
+		https://github.com/crytic/slither/blob/master/trophies.md
+34
+	Slither features
+		Detects vulnerable Solidity code with low false positives
+		Identifies where the error condition occurs in the source code
+		Easily integrates into continuous integration and Truffle builds
+		Built-in 'printers' quickly report crucial contract information
+		Detector API to write custom analyses in Python
+		Abilitiy to analyse contracts written in Solidity >=0.4
+		Intermediate representation (SlithIR) enables simple, high-precision analyses
+		Correctly parses 99.9% of all public Solidity code
+		Average execution time of less than 1 second per contract
+35
+	Slither bugs and optimizations detection can run on a Truffle/Embark/Dapp/Etherlime/Hardhat application or an a single .sol file
+	1
+		Slither runs all detectors by default
+		To run only selected detectors, use `--detect detector1,detector2`
+		To exclude detectors, use `--exclude detector1,detector2`
+	2
+		To exclude detectors with an informational or low severity, use `--exclude-informationar` or `--exclude-low`
+	3
+		`--list-detectors` lists all available detectors
+36
+	Slither printers allow printing contract information with `--print` and following options
+	  (with contract-summary, human-summary, inheritance-graph for quick review, and others such as call-graph, cfg, 
+	  function-summary and vars-and-auth for in-depth review)
+		1
+			call-graph
+			Expart the call-graph of the contracts to a dot file
+		2
+			cfg
+			Export the CFG of each functions
+		3
+			constructor-calls
+			Print the constructors executed
+		4
+			contract-summary
+			Print a summary of the contracts
+		5
+			data-dependency
+			Print the data dependencies of the variables
+		6
+			echidna
+			Export Echidna guiding information
+		7
+			evm
+			Print the evm instructions of nodes in functions
+		8
+			function-id
+			Print the keccak256 signature of the functions
+		9
+			function-summary
+			Print a summary of the functions
+		10
+			human-summary
+			Print a human readable summary of the contracts
+		11
+			inheritance
+			Print the inheritance graph of each contract to a dot file
+		12
+			inheritance-graph
+			Export the inheritance graph of each contract to a dot file
+		13
+			modifiers
+			Print the modifiers called by each function
+		14
+			require
+			Print the require and assert calls of each function
+		15
+			slithir
+			Print the slithIR representation of the functions
+		16
+			slithir-ssa
+			Print the slithIR representation of the functions
+		17
+			variable-order
+			Print the storage order of the state variables
+		18
+			vars-and-auth
+			Print the state variables written and the authorization of the functions
+37
+	Slither upgradeabalitiy checks helps review contracts that use the delegatecall proxy pattern using 
+	  `slither-check-upgradeability` tool with the following options
+		1) become-constant
+			Variables that should not be constant
+		2) function-id-collision
+			Function ids collision
+		3) function-shadowing
+			Functions shadowing
+		4) missing-calls
+			Missing calls to init functions
+		5) missing-init-modifier
+			initializer() is not called
+		6) multiple-calls
+			Init functions called multiple times
+		7) order-vars-contracts
+			Incorrect vars order with the v2
+		8) order-vars-proxy
+			Incorrect vars order with the proxy
+		9) variables-initialized
+			State variables with an initial value
+		10) were-constant
+			Variables that sholud be constant
+		11) extra-vars-proxy
+			Extra vars in the proxy
+		12) missing-variables
+			Variable missing in the v2
+		13) extra-vars-v2
+			Extra vars in the v2
+		14) init-inherited
+			Initializable not inherited
+		15) init-missing
+			Initializable is missing
+		16) initialize-target
+			Initialize function that must be called
+		17) initializer-missing
+			initializer() is missing
+38
+	Slither code similarity detector (a research oriented tool) uses state-of-the-art machine learning to detect similar (vuln)
+	  Solidity functions
+	1
+		It uses a pre-trained model from etherscan_verified_contracts with 60,000 contracts and mare than 850,000 functions
+	2
+		It uses FastText, a vector embedding technique, to generate compact numerical representations of every function
+	3
+		It has four modes
+			1) test
+				Finds similar functions to your own in a dataset of contracts
+			2) plot
+				Provide a visual representation of similarity of multiple sampled functions
+			3) train
+				Builds new models of large datasets of contracts
+			4) info
+				Inspects the internal information of the pre-trained model or the assessed code
+39
+	Slither contract flattening tool `slither-flat` produces a flattened version of the codebase with the following features
+	1
+		Supports 3 strategies
+			1) MostDerived
+				Export all the most derived contracts (every file is standalone)
+			2) OneFile
+				Export all contracts in one standalone file
+			3) LocalImport
+				Export every contract in one separate file, and include import ".." in their preludes
+	2
+		Supports circular dependency
+	3
+		Supports all the compilation platforms (Truffle, embark, builder, etherlime)
+40
+	Slither format tool `slither-format` generates automatically patches
+	The patches are compatible with git
+	Patches should be carefully reviewed before applying
+	Detectors supported with this tool are
+		unused-state
+		solc-version
+		pragma
+		naming-convention
+		external-function
+		constable-states
+		constant-function
+41
+	Slither ERC conformance tool `slither-check-erc` checks the following for ERC's conformance for (20, 721, 777, 165, 223, 1820)
+		All the functions are present
+		All the events are present
+		Functions return the correct type
+		Functions that must be view are view
+		Event's parameters are correctly indexed
+		The functions emit the events
+		Derived contracts do not break the conformance
+42
+	Slither property generation tool `slither-prop` generates code properties (EG invariants) that can be tested with unit tests or
+	  Echidna, entirely automatically
+	The ERC20 scenarios that can be tested are
+		1) Transferable
+			Test the correct tokens transfer
+		2) Pausable
+			Test the pausable functionality
+		3) NotMintable
+			Test that no one can mint tokens
+		4) NotmintableNotBurnable
+			Test that no one can mint or burn tokens
+		5) NotBurnable
+			Test that no one can burn tokens
+		6) Burnable
+			Test the burn of tokens
+			Require the `burn(address) returns()` function
+43
+	Slithers new detectors
+	Slither's plugin architecture lets you integrate new detectors that run from the cmdline
+	The skeleton for a detector has
+		1) ARGUMENT
+			Lets you run the detector from the commandline
+		2) HELP
+			Is the information printed from the cmdline
+		3) IMPACT
+			Indicates the impact of the issue
+			Allowed values are INFORMATIONAL | LOW | MEDIUM | HIGH
+		4) CONFIDENCE
+			Indicates your confidence in the analysis
+			Allowed values are LOW | MEDIUM | HIGH
+		5) WIKI
+			Constants are used to generate automatically the documentation
+		6) _detect()
+			Is the function that implements the detector logic and needs to return a list of findings
+44
+	Manticore 
+	Is a symbolic execution tool for analysis of Ethereum smart contracts (besides Linux binaries and WASM modules)
+		1) Program Exploration
+			Manticore can execute a program with symbolic inputs and explore all the possible states it can reach
+		2) Input generation
+			Manticore can automatically produce contrete inputs that result in a given program state
+		3) Error discovery
+			Manticore can detect crashes and other failure cases in binaries and smart contracts
+		4) Instrumentation
+			Manticore provides fine-grained control of state exploration via event callbacks and instruction hooks
+		5) Programmatic interface
+			Manticore exposes programmatic access to its analysis engine via a Python API
+45
+	Echidna
+	Is a Haskell program designed for fuzzing/property-based testing of Ethereum smart contracts
+	It uses sophisticated grammar-based fuzzing campaigns based on a contract ABI to falsify user-defined predicates or Solidity 
+	  assertions
+46
+	Echidna features
+		1
+			Generates inputs tailored to your actual code
+		2
+			Optional corpus collection, mutation and coverage guidance to find deeper bugs
+		3
+			Powered by Slither to extract useful information before the fuzzing campaign
+		4
+			Source code integration to identify useful information before the fuzzing campaign
+		5
+			Curses-based retro UI, text-only on JSON output
+		6
+			Automatic test case minimization for quick triage
+		7
+			Seamless integration into the development workflow
+		8
+			Maximum gas usage reporting of the fuzzing campaign
+		9
+			Support for a complex contract initialization with Etheno and Truffle
+47
+	Echidna usage
+		1) Executing the test runner
+			The core Echidna functionality is an executable called `echidna-test`
+			`echidna-test` takes a contract and a list of invariants (properties that should always remain true) as input
+			For each invariant, it generates random sequences of calls to the contract and checks if the invariant holds
+			If it can find some way to falsify the invariant, it prints the call sequence that does so
+			If it can't, you have some assurance the contract is safe
+		2) Writing invariants
+			Invariants are expressed as Solidity functions wich names that begin with `echidna_`, have no arguments, and
+			  return a boolean
+		3) Collecting and visualizing coverage
+			After finishing a campaign, Echidna can save a coverage maximising corput in a special directory specified with
+			  the corpusDir config option
+			This directory will contain two entries
+				1
+					A directory named 'coverage' with JSON files that can be replayed by Echidna 
+				2
+					A plain-text file named 'covered.txt', a copy of the source code with coverage annotations
+48
+	`Eth-security-toolbox` is a Docker contained preinstalled and preconfigured with all of Trail of Bits' Ethereum security tools
+	This includes
+		1) Echidna property-based fuzz tester
+		2) Etheno integration tool and differential tester
+		3) Manticore symbolic analyzer and formar contract verifier
+		4) Slither static analysis tool
+		5) Rattle EVM lifter
+		6) Not So Smart Contracts repository
+49
+	`Ethersplay` is a Binary Ninja Plugin which enables EVM disassembler and related analysis tool
+	1
+		Takes as input the evm bytecode in raw binary format
+	2
+		Renders control flow graph of all functions
+	3
+		Shows manticore coverage
+50
+	`Pyevmasm` is an assembler and disassembler library for the EVM
+	It includes a cmdline utility and a python API
+51
+	`Rattle` is an EVM binary static analysis framework designed to work on deployed smart contracts (not actively developed)
+	1
+		Takes EVM byte strings and uses a flow-sensitive analysis to recover the original control flow graph
+	2
+		Lifts the control flow graph into a SSA/infinite register form, and optimizes the SSA, removing DUPs, SWAPs, PUSHs and
+		  POPs
+	3
+		The conversion from a stack machine to a SSA form removes 60%+ of all EVM instructions and presents a much friendlier
+		  interface for those who wish to read the smart contracts they're interacting with
+52
+	`Evm_cfg_builder` is a tool used to extract a control flow graph (CFG) frnom EVM bytecode and used by Ethersplay, Manticode
+	  and other tools from ToB
+		1
+			Reliably recovers a Control Flow Graph (CFG) from EVM bytecode using a dedicated Value Set Analysis
+		2
+			Recovers function names
+		3
+			Recovers attributes (Eg payable, view, pure)
+		4
+			Outputs the CFG to a dot file
+		5
+			Library API
+53
+	`Crytic-compile` is a smart contract compilation library which is used in ToB's security tools and supports Truffle, Embark,
+	  Etherscan, Brownie, Waffle, Hardhat and other development environments
+	The plugin is used in Crytic tools including
+		Slither
+		Echidna
+		Manticore
+		evm-cfg-builder
+54
+	`solc-select` is a script to quickly switch between Solidity compiler versions
+		1) `solc-select`
+			Manages installing and setting different solc compiler versions
+		2) `solc`
+			Wrapper around `solc` which picks the right version according to what was set via `solc-select`
+		3) 
+			Solc binaries are downloading from `https://binaries.soliditylang.org/` which contains official artifacts
+			  for many historical and modern solc versions for Linux and macOS
+55 
+	`Etheno` is the Ethereum testing Swiss Army Knife
+	It's a JSON RPC multiplexer, analysis tool wrapper and test integration tool
+		1) JSON RPC Multiplexing
+			Etheno runs a JSON RPC server that can multiplex calls to one or more clients
+				1
+					API for filtering and modifying JSON RPC calls
+				2
+					Enables differential testing by sending JSON RPC sequences to multiple Ethereum clients
+				3
+					Deploy to and interact with multiple networks at the same time
+		2) Analysis tool wrapper
+			Etheno provides a JSON RPC client for advanced analysis tools like Manticode
+				1
+					Lowers barrier to entry for using advanced analysis tools
+				2
+					No need for custom scripts to set up account and contract state
+				3
+					Integration with Test Frameworks like Ganache and Truffle
+						1
+							Run a local test network with a single command
+						2
+							Use Truffle migrations to bootstrap Manticode analyses
+						3
+							Symbolic semantic annotations within unit tests
+56
+	`MythX` is a powerful security analysis service that finds Solidity vulns in your Ethereum smart contract code during your 
+	  development lifecycle
+	It is a paid API-based service which uses several tools on the backend including...
+		A static analyzer (Maru)
+		A symbolic analyzer (Mythril)
+		A greybox fuzzer (Harvey)
+	  ... to implement a total of 46 detectors
+	Mythril is the open-source component of MythX
+57
+	MythX process
+		1) Submit your code
+			The analysis requests are encrypted with TLS and the code you submit is accessed only by you
+			Submit both the source code and the compiled bytecode of your smart contracts for best results
+		2) Activate a full suite of analysis techniques
+			The longer MythX runs, the more it can detect security weaknesses
+		3) Receive a detailed analysis report
+			MythX detects a majority of vulns listed in the SWC registry
+			The report will return a listing of all the weaknesses found in your code, including the exact position of
+			  the issue and its SWC ID
+			Reports generated can be only accessed by your
+			MythX offers 3 scan modes, quick, standard and deep
+58
+	MythX tools
+	When you submit your code to the API it gets analyzed by multiple microservices in parallel where these tools cooperate to
+	  return the more comprehensive results in the execution time provided
+		1
+			A static analyzer that parses the Solidity AST
+		2
+			A symbolic analyzer that detects the possible vulnerable states
+		3
+			A greybox fuzzer that detects vulnerable execution paths
+59
+	MythX coverage
+	Extends to most SWCs found in the SWC registry with the 46 detectors being listed here (https://mythx.io/detectors/) along with
+	  the type of analysis used
+60
+	MythX is based on Saas (Security as a service) platform based on the premise that
+		1
+			Higher performance compared to running security tools locally
+		2
+			Higher vulnerability coverage than any standalone tool
+		3
+			Benefit from continious improvements to our security analysis technology with new and improved security tests
+			  as the smart contract security landscape evolves	
+
