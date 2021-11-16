@@ -1,0 +1,202 @@
+1
+	An audit is an assessment of a project 
+2
+	Scope is typically the SCs, sometimes off-chain stuff
+3
+	Goal of audit is to find security risks
+4
+	Non-goal is to have bug free code, that's not guaranteed
+5
+	Projects pay for an audit
+6
+	Audits done when project team doesn't have enough security talent
+7
+	There are different audit types (new/repeat/fix/retainer/incident)
+8
+	Timeline for audit depends on type of audit and project
+9
+	Effort is typically more than 1 assessor
+10
+	Audit costs are typically upwards of 10K/week depending on project
+11
+	There are prerequisites like (codebase, scope, documentation, prior testing, timeline, effort)
+12
+	Audit limitations are (time, expertise, understanding of project)
+13
+	Audit reports include (scope, goals, effort, timeline, approach, tools/techniques, vuln details/class/severity/exploits/fixes)
+14
+	Vulns found in audits are classified into categories (check main)
+15
+	Measuring likelihood/difficulty of vuln is hard but you just do low/med/high
+16
+	The impacts of findings are low/med/high
+17
+	The severity of findings are a combination of likelihood and impact in a matrix or other ways (check main)
+18
+	To prepare for an audit (according to ToB), (resolve easy issues, document everything, have the code ready EG dependencies)
+19
+	Audit techniques are (spec analysis, doc analysis, testing, static analysis, fuzzing, symbolic, formal verification, manual)
+20
+	Spec analysis is what project does and its various components
+21
+	Doc analysis is description of what has been implemented based, the 'how' of the code but not the 'why'
+22
+	Testing is easy you just run their existing tests but you can add more
+23
+	Static analysis is analying program properties without actually running it (control flow and data flow analysis)
+24
+	Fuzzing is producing random/invalid/unexpected data as inputs to program to catch exceptions
+25
+	Symbolic checking is checking program correctness, looks if it's mathematically possible for function to break assertion
+26
+	Formal verification is act of proving/disproving correctness of algos but I don't really know difference between symbolic
+27
+	Manual analysis is very important and is done my humans to catch things that programs can't (EG business logic)
+28
+	False positives can happen
+29
+	False negatives can happen and are even worse
+30
+	Just a list of audit firms that don't really matter to my learning (unless you're a potential employer reading this)
+31
+	Smart contract security tools assist auditors in finding vulns but they don't replace manual code review
+32
+	Categories of security tools (testing, test coverage, linting, disassembling, static analysis, dynamic analysis, visual, formal)
+33
+	`Slither` is Solidity static analysis framework in Python3
+34
+	`Slither` features are (find vuln code, API to write custom analyses, finds error conditions in source code)
+35
+	`Slither` has bug/optimization detection and there are many different detectors you can mix and match
+36
+	`Slither` allow printing contract info for easy understanding/context with `--print`
+37
+	`Slither` has upgradability checks for proxy patterns to keep them secure
+38
+	`Slither` has code similarity detector to detect similar vuln solidity functions
+39
+	`Slither` contract flattening tool to have all source in one file without imports, has options for different ways to do it
+40
+	`Slither` format tool for git patches which is a git feature I don't know about
+41
+	`Slither` ERC conformance tool for (20, 721, 777, 165, 223, 1820) and finds stuff like missing funcs, return types etc
+42
+	`Slither` property generation tool for use with unit tests or Echidna
+43
+	`Slither` new detectors where you can plugin your own detectors (check main)
+44
+	`Manticore` is a symbolic execution tool for Ethereum SCs that does (prog explore, input gen, error finding) (check main)
+45
+	`Echidna` is program for fuzzing/property-based testing of Ethereum SCs, tries to falsify user-denifed predicates
+46
+	`Echidna` features (gen input tailored to code, powered by Slither for fuzzing) (check main)
+47
+	`Echidna` can be run with `echidna-test`, invariants written in Sol with `echidna_` prefix, test coverage shown (check main)
+48
+	`Eth-security-toolbox` is docker container preinstalled/preconfigured with all ToBs security tools (check main)
+49
+	`Ethersplay` is EVM disassembler that renders control flow graph and shows manticore coverage
+50
+	`Pyevmasm` is an assembler/disassembler library for EVM on cmdline and also has Python API
+51
+	`Rattle` is EVM binary static analysis framework for SCs, removes clutter from EVM opcodes for manual analysis (check main)
+52
+	`Evm_cfg_builder` is a tool to extract Control Flow Graph (CFG) from EVM bytecode (used by Ethersplay, Manticore and others)
+53
+	`Cryptic-compile` is a SC compilation lib used by ToB
+54
+	`solc-select` allows you to switch between Solidity compiler versions
+55
+	`Etheno` is Ethereum JSON RPC multiplexer, and alows for advanced analysis tools (check main)
+56
+	`MythX` is a SaaS for Solidity security analysis and has static analyzer (Maru), symbolic (Mythril) and fuzzer (Harvey)
+57
+	`MythX` process is submit code, use the tools, receive report (check main)
+58
+	`MythX` tools are used when you submit code, same tools as discussed in 56
+59
+	`MythX` coverage extends to most SWCs with 46 detectors being listed (check main)
+60
+	`MythX` is based on SaaS
+61
+	`MythX` privacy for SCs is guaranteed
+62
+	`MythX` running time (quick = 5m, standard = 30m, deep = 90m)
+63
+	`MythX` integrations are CLI, Typescript lib to integrate into JS/TS projects, Python lib for Python projects, VSCode extension
+64
+	`MythX` pricing is simple (check main)
+65
+	`Scribble` seems pretty complicated and it's something that I'll have to look into (check main)
+66
+	`Fuzzing-as-a-service` where users send SCs with specs or properties and  its then fuzzed
+67
+	`Karl` is monitor for SCs that checks for vulns using Mythril detection engine and can monitor Eth blockchain in realtime
+68
+	`Theo` is exploitation tool with metasploit-like interface, can do SC recon EG storage, run exploits, front&backrun (check main)
+69
+	`Visual Auditor` is VSCode extension for Solidity/Vyper with syntax/semantic highlighting and annotation support (check main)
+70
+	`Sūrya` helps understand SCs by visualising and showing info about structure with call and inheritance graphs
+71
+	`SWC registry` is a weakness classification for SCs
+72
+	`Securify` is a static analysis security scanner and supports 38 vulns
+73
+	`VerX` is a verifier that can prove temporal safety properties (temporal safety is memory related) (check main)
+74
+	`SmartCheck` is static analysis tool for Solidity written SCs
+75
+	`K-Framework` provides `KEVM` which is an executable spec of the EVM that meets official test, good for runtime analysis
+76
+	`Certora Prover` checks that SCs satisfy a set of rules written in the lang `Specify`, takens input as bytecode or .sol file
+77
+	`HEVM` by DappHub is implementation of EVM made for unit testing and debugging SCs
+78
+	CTFs are (CaptureTheEther, Ethernaut, DamnVulnDefiV2, Paradigm)
+79
+	SC security tools are useful while auditing as they are fast and cheap but can be susceptible to false positive/negatives
+80
+	Audit process is 10 steps (check main)
+81
+	Reading specification/documentation
+82
+	Running static analyzer
+83
+	Manual code review
+84
+	Running deeper automated tools (fuzzer, symbolic etc)
+85
+	Brainstorming with other auditors can work but you might bias each other
+86
+	Discussios with the project team
+87
+	Report writing (check main)
+88
+	Report delivery is done via a secure channel
+89
+	Evaluating fixes is done by the audit team after project team has applied fixes to vulns
+90
+	Manual review approaches can be (see following points)
+91
+	Approach - Starting with access control
+92
+	Approach - Starting with asset flow
+93
+	Approach - Evaluating control flow
+94
+	Approach - Evaluating data flow
+95
+	Approach - Inferring constraints
+96
+	Approach - Understanding dependencies
+97
+	Approach - Evaluating assumptions
+98
+	Approach - Evaluating security checklists (basically following a methodical checklist to not miss anything)
+99
+	Presenting PoC exploits is good to actually show the exploit in action to make it easier to understand
+100
+	Estimating the likelihood and impact is basically a discussion game but it shouldn't be too hard to figure out
+101
+	Summary of article is audits take time, expertise, and resources to find vulns but doesn't guarantee vuln free code
