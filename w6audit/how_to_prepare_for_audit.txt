@@ -1,0 +1,56 @@
+When broken down there are 6 steps to follow to get the best out of an audit
+	1) Documentation
+	2) Clean code
+	3) Testing
+	4) Automated analysis
+	5) Frozen code
+	6) Use a checklist
+	The following will break each point down in more detail
+
+DOCUMENTATION
+	Good documentation makes it easier to understand the project and get into deep analysis
+	Describe 'what' and 'why' its being built (for the overall project and each contract)
+	Include a specification of the systems indended functionality
+		For each contract describe important properties or behaviours as well as actions/states that should not be possible
+	Flow charts go a long way too
+	Pseudocode spec is decent as it's explained in English so it more clearly expresses what you want the code to do
+CLEAN CODE
+	Well formatted code is easier to read
+	Run a linter on your code
+	Address compiler warnings
+	Remove comments that indicate unfinished work (TODO/FIXME)
+	Remove commented-out code
+	Remove unneeded code
+TESTING
+	Goal is to have 100% test coverage
+	Review list of test cases for gaps
+	Sometimes tests are made to make sure the 'happy path' works out but not any other cases
+	README should have clear indicator on how to use tests
+AUTOMATED ANALYSIS
+	Running simpler tests before audit and addressing them leaves auditors with more time to focus on complex stuff
+	Can use something like MythX suite as a start
+	Not essential to do this but it helps
+FROZEN CODE
+	Development should be finished before audit starts
+	You typically will give a commit hash for auditors to work on
+	Don't try to make changes to code while audit happening cause it's a waste of time
+USE A CHECKLIST
+	Here is a simple one
+	--------------------
+	Documentation (plain english description of project, what and why)
+		For overall system
+		For each contract
+	Clean code
+		Run linter
+		Fix compiler warnings
+		Remove TODO and FIXME comments
+		Delete unused code
+	Testing
+		README gives clear instructions for running tests
+		Testing dependencies are packaged with the code OR are listed including versions
+	Automated analysis
+		Analysis with MythX
+		Or other tools
+	Frozen code
+		Halt development of the contract code
+		Provide commit hash for the audit to target
