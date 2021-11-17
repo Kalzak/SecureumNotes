@@ -1,0 +1,29 @@
+Most impactful results from analysis
+	SC vulns are more like vulns in other systems that is commonly expected
+	80% of the most important flaws could likely be detected with automated static or dynamic analysis
+	50% of all findings are not likely to ever be found by any automated tools (even if the tech gets way better)
+	Manually produced extensive unit tests likely offer weak or no protection against flaws that an expect auditor can find
+Most of the literature on SC vulns focuses on only a few but not all
+	EG reentrancy is something you hear a lot about
+Category frequencies
+	Data validation flaws are extremely common (36% of SC findings, 53% of non SC findings)
+	Access control (10% of findings)
+Worst of the worst
+	A worst finding is HIGH severity, LOW difficulty
+	<category> <percentage of found vulns being HIGHLOW
+	Access control 25%
+	Authentication 25%
+	Timing 25%
+	Numerics 23%
+	Undefined behaviour 23%
+	Data validation 11%
+	Patching 11%
+Tools and automation: No silver bullet
+	50% of the finding were almost impossible to detect with a tool
+	Tool can't inform you about (most) frontrunning
+	There are problems that simply require human effort
+Unit tests are great but maybe not for this
+	There was not any correlation between unit test quantity/quality and presence of findings
+	Unit tests are still important, but what it means is that what devs who write unit tests are looking for vs auditors is diff
+	
+	
