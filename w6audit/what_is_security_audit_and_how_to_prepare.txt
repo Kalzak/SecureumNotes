@@ -1,0 +1,92 @@
+GET YOUR MIND RIGHT
+	Audit is to get other eyes on program and increase confidence that project works how you want it to
+	Reasons to engage in audit
+		Lack in-house expertise
+		Lack licensing to tools
+		High risk contract 
+		Seeking input
+		Risks that need to be mitigated
+		Oppornunities to improve architecture for security/auditability
+	Does not guarantee code quality/security or stamp of approval
+	Avoid the mentality of audits for marketing
+	Just typically makes higher quality code and assurance levels increase
+
+VENDOR EXPERTISE
+	Vendors typically have specific specialties they excel in
+	Available staff, professionalism and prev experience will affect outcome of assessment
+	A leading vendor in UX should not be expected to give leading reviews on distributed infrastructure architecture
+
+AVAILABLE VENDOR RESOURCES
+	The resources the vendor is able to assign to the audit
+	Refers to man-power, available tooling, computer resources etc
+	Can all affect how the audit goes
+
+AVAILABLE DOCUMENTATION
+	Quality documentation is helpful for assessors
+	They need to learn from nothing to everything in the assessement time so the easier it is the better so money is spent well
+
+PRIOR ART
+	The number of known issues with code/technology/functionality being assessed
+	Known issues in the past can help paint a picture of the project and where to look
+	If relatively new project, then stuff may be found during the audit
+
+HOW TO PREPARE
+	DOCUMENTATION
+		Explicit detailed documentation allows outsiders to understand functionality easily
+		Describe how to interact with it
+		Objective is to get auditor to go from zero knowledge to master asap
+		Have exhaustive user stories
+		Perform threat modelling
+			Look at things through the eyes of an attacker
+			Where an attacker would start etc
+	TEST IT YOURSELF
+		Perform user stories
+		Break away from the norm user stories and do unusual things
+	CREATE A TESTING CORPUS
+		... not really sure what those are ...
+	USE AUTOMATED TESTING
+		Pretty self-explanatory, using fuzzers etc
+
+STEPS TO AN ASSESSMENT
+	SHOULD YOU EVEN GET AUDIT
+		How much risk is in the system
+		How complex is the system
+		How much does the assessment cost relative to the value or risk the system will hold
+		What is the potential cost of system failure
+	DEFINE THE SCOPE
+		Define where the auditors should look
+		Narrow down areas in the codebase that need extra scrutiny
+	HAVE A BUDGET PREPARED
+		Prices can fluctuate
+		Have funds basically
+	WRITE REQUEST FOR PROPOSALS (RFP) DOCUMENT
+		You bring it all tegother into a single document to send out
+		Should contain
+			Intro					.
+			Project description			.
+			Resources				docs/spec
+			Scope					.
+			Engagement Description			.
+			Deliverables				what you expect as a result of assessment
+			Indemnification and fee structure	how are people getting paid
+			Selection criteria			what you are looking for in an external assessment org
+			Bidding instructions			how one goes about submitting a proposal
+			Conclusion				.
+	SET UP CHANNELS OF COMMUNICATION
+		You need to be able to communicate with the project team
+		Communication channel should be secure
+
+WHAT TO LOOK FOR IN A SECURITY VENDOR
+	Some are outstanding, some good, some bad, some should shut down
+	They all vary with their associated costs
+	Use the responses to your RFP and then look into each company
+	The vendors proposal should show they have expertise in the specific technologies in the scope of the project
+	A track record of previous assessments that are available for review can be useful
+	Vendor should have rationale behind their fee structure
+	If vendor can not justify the price behind their proposal then ignore it
+	
+HOW TO MAXIMISE RESULTS
+	You now have a set of deliverables to go through that you requested in the RFP
+	You have to address whatever was found by the audit team
+	Once fixed you should broadcast the mitigations made
+	
