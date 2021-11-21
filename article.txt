@@ -1,0 +1,196 @@
+NOTE
+	Instead of re-typing the article to drill in into my mind, I'll just write the 'lesson learned' instead
+1
+	You need to be aware that ERC20 functions `transfer` and `transferFrom` might not revert of failure
+	Sometimes they can return 0/false and if you don't plan for that then you had have a bad time
+	Recommendation
+		Use a revert statement on 0/false or use OZ SafeERC20 wrapper functions
+2
+	Random task execution
+	???DONT_UNDERSTAND???
+	There is the potential for reentrancy here through accessing the users DSProxy
+	Recommendation
+		Use a reentrancy guard
+3
+	Tokens with more than 18 decimal points will cause issues
+	It is assumed that the max number of decimals for each token is 18
+	It is possible (but uncommon) to have more than 18 decimals
+	This can result in broken code flow and unpredictable outcomes
+	Recommendaiton
+		Make sure the code won't fail in case the token's decimals is more than 18
+4
+	Error codes are returned on failure rather than reverting
+	When the error code isn't checked by the calling function then you can potentially have silently failing code
+	Recommendation
+		Caller contract should revert in case of error code (or just revert on error in the called function)
+5
+	The order of parameters can be an issue
+	In this example the author has the `transferFrom` arguments in a different order from the `allowance` function called before
+	This means that you're actually calling transferFrom in the wrong way expected
+	Recommendation
+		Make sure parameters are correctly ordered
+6
+	???DONT_UNDERSTAND???
+7
+	Wrong value checked (this an application level logic issue)
+	The comparison that is taking place is not what should actually be tested
+8
+	A DOS by depositing zero tokens to a pool for initial liquidity deposit
+	Only a single deposit can be made
+	The `deposit()` function does not check for a nonzero amount of deposited tokens, so a malicious user can DOS a pool
+	This can be done by not transferring any tokens and then calling `deposit()`
+9
+	Commitments can be overwritten because an `=` is used instead of a `+=`
+	Also commitments of any user can be overwritten because the affected address is set by a parameter, not msg.sender
+10
+	Access to a time-sensitive function (should only be able to be called before a certain day) is accessible at any time
+	Recommendation
+		Add a validation to make sure that those functions can't be called after the launch
+11
+	Use of functions that may overflow related to minting and burning
+	The minting/burning affects the pair contract
+	Recommendation
+		Ensure casts in `getBuyIncentive` and `getSellPenalty` do now overflow
+12
+	A function in the FEI protocol exists and is supposed to only be called after genesis launch
+	But it can be called before
+	There are some checks that require the contract to have some PCV (protocol controlled value)
+	Anyone can bypass it if they send the contrat 1 wei
+	They can then mint themselves FEI each time the timer expires
+13
+	There is a timer function in the Fei protocol
+	In the constructor, the interval for the timer is set	
+	There is another function called `_initTimed` which sets the `startTime`
+	Before the function `_initTimed` is called, `startTime` is zero, which means that `isTimeEnded()` will return true every time
+14
+	Overflow/underflow protection
+	In the Fei protocol there is some math done without overflow protection, but it's based on ETH values so it can't overflow
+	Still recommended to have the overflow checks anyways
+15
+	Fei protocol once again no check on return value for a token transfer
+	Recommendation is to have a require statement
+16
+	Fei protocol has a function called `emergencyExit` which is intended as an escape mechanism if the genesis launch method fails
+	`emergencyExit` becomes callable 3 days after `launch` is callable
+	These two methods are supposed to be mutually exclusive but they aren't
+	Either method remains callable after a successful call to the other
+	You might get some edge cases with this
+	Recommendation
+		Ensure `launch` cannot be called if `emergencyExit` has been called
+		Ensure `emergencyExit` cannot be called if `launch` has been called
+17
+	ERC20 tokens with no return value will fail to transfer
+	The BitBank protocol has a check for a transfer to make sure that an ERC20 token has successfully transferred by expecting a 
+	  return value of `true`, if not then it reverts
+	But some ERC20 tokens might not return anything on the transfer, which will be a zero therefore it will revert
+	Recommendation
+		Use OZs SafeERC20
+18
+	Reentrancy vuln 
+	In the MetaSwap protocol, there is a `swap` function
+	The process is
+		1) collect the `from` token (or ether) from the user
+		2) execute the trade
+		3) transfer the contract's balance of tokens (`from` and `to` and ether to the user)
+	If an attacker is able to reenter `swap` before step3 they can execute their own trade using the same tokens and get all the 
+	  tokens for themselves
+19
+	The purpose of the `MetaSwap` contract is to save users gas cost when dealing with a number of different aggregators
+	They can just approve() their tokens to be spent by `MetaSwap`
+	They can then perform trades with all supported aggregators without having to reapprove anything
+	Downside is that buggy/malicious adapter has access to a large collection of valuable assets
+	New adapters can be added, so you can't even audit existing adapters and know you're safe
+	Recommendation
+		Make `MetaSwap` contract the only contract that receives token approval
+		It then moves tokens to the spendier contract before that contract `degelatecalls` to the appropriate adapter
+		In this model, newly added adapters shouldn't be able to access users' funds
+20
+	In the MetaSwap protocol, owners can front-run users to swap an adaper implementation
+	This could be used by a malicious/compromised owner to steal from users
+	This means any adapter can overwrite the logic of another adapter regardless of what policies are put in place at contract level
+	Users must fully trust every adapter because just one malicious adapter could change the logic of all other adapters
+	Recommendation
+		At minimum, disallow modification of existing adapters
+		Instead, simply add new adapters and disable old ones
+21
+	In the protocol `mstable-1.1` there is a `SAVE` contract which allows users to deposit `mAssets` in return for lending yield
+	  and swap fees
+	When depositing `mAssets`, users receieve a 'credit' tokens at the momentary credit/`mAsset` exchange rate which is updated
+	  at every deposit
+	However the SC enforces a min timeframe of 30 mins where interest rate will not be updated
+	A user who deposits shortly before the end of the timeframe will get rcedits at the stale interest rate and can immediately 
+	  trigger an update of the rate and withdraw at the updated (more favourable) rate after the 30min window
+	As a result, it would be possible for users to benefit from interest payouts by only staking `mAssets` momentarily and 
+	  then using them for other purposes for the rest of the time
+	Recommendation
+		Remove the 30 min window
+22
+	In the protocol `BancorV2 AMM` it is possible to atomically arbitrage rate changes in a risk-free way by "sandwiching" the 
+	  Oracle update between two TXs
+	The attacker would send the following 2 TXs at the moment the oracle update appears in the mempool
+	1
+		First TX
+		Send with a higher gas price than oracle update
+		Converts a very small amount
+		This 'locks-in' the conversion weights for the block since `handleExternalRateChange()` only updates weights once per
+		  block
+		By doing this, the arbitrageur ensures that the stale Oracle price is initially used when doing the first conversion in
+		  the following TX
+	2
+		Second TX
+		Send with a slightly lower gas price than the oracle price update TX
+		Performs a large conversion at the old weight, adds a small amount of liquidity to trigger rebalancing and coverts back
+		  at the new rate
+		The attacker can obtain liquidity for step2 using a flash loan
+		The attacker will deplete the reserves of the pool
+	Recommendation
+		Do not allow users to trade at stale oracle rate and trigger an oracle price update in the same TX
+23
+	In the `Shell Protocol`, certain functions lack input validation routes
+	The functions should ccheck if the passed arguments are valid first
+	The checks should include (but are not limited to)
+	1
+		uint should be larger than 0 when 0 is considered invalid
+	2
+		unit should be within constraints
+	3
+		int should be positive in some cases
+	4
+		length of arrays should match if more arrays are sent as arguments
+	5
+		addresses should not be 0x0
+	Recommendation
+		Add tests that check if all of the arguments have been validated
+24
+	In the `Shell Protocol` there are several functions that give extreme power to admin role
+	The admin has a function that can add assimilators, they are essentially proxy architecture and they can change the code
+	  to do whatever they want
+	It effectively means that all trust is on the admin
+	Also there is a function called `safeApprove` that allows admin to move any of the tokens the contract holds to anywhere
+		That's effecively a backdoor to move tokens anywhere
+	Recommendation
+		Just deal with the fact that you can't upgrade
+		For the `safeTransfer` it should be removed and instead, use a trustless escape-hatch mechanism
+			That hatch mechanism is called a DEH, look it up
+25
+	In the `Lien Protocol` for the exchange, there is an exchange (BoxExchange.sol)
+	Inside that sol file there is an internal function `_transferEth()` that reverts if the transfer does not succeed
+	They `_payment()` function processes a list of transfers to settle the transactions in an ExchangeBox
+	If any of the recipients of an ETH transfer is a SC that reverts, then the entire payout will fail and will be unrecoverable
+	Recommendation
+		Implement a queuing mechanism to allow buyers/sellers to initiate the witdrawas on their own using a 'pull-over-push'
+		  pattern
+		Ignore a failed transfer and leave the responsibility up to users to receive them properly
+26
+	The protocol `The Lao` has functions `safeRagequit` and `ragequit` that are used for withdrawing funds from the LAO
+	The difference between these is `ragequit` tries to withdraw all the allowed tokens
+	`safeRagequit` withdraws only some subset of these tokens, defined by the user
+	It's needed incase the user or `GuildBank` is blacklisted in some of the tokens and the transfer reverts
+	The problem is that even though you can quit in that case, you'll lose the tokens that you exclude from the list
+	To be precise, you can still potnetially be transferred to the user who quit, but that requires a lot of trust, cooridation
+	  and time and anyone can steal	
+	Recomendation
+		Implementing a pull pattern for token withdrawals should solve the issue
+		Users will be able to quit the LAO and burn their shares but still keep their tokens in the LAO's contract for some time
+		  if they can't withdraw them right now
+	
