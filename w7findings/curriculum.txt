@@ -1,0 +1,30 @@
+Content
+	Article
+		https://secureum.substack.com/p/audit-findings-101
+	Videos
+		https://youtu.be/SromSImIpHE
+		https://youtu.be/KLBi3Uyg0dY
+		https://youtu.be/RUyED_6mkqg
+		https://youtu.be/D1Uz0NvrqeU
+		https://youtu.be/GX8Z0kRRi_I
+Quiz
+	Link
+		https://www.classmarker.com/online-test/start/?quiz=c44618b4c4edbb5e
+	Details
+		8 questions
+		16 minutes
+		2min/question
+	Other info
+		Code and comments will be part of the quiz
+Assignments
+	Read audit report along with SCs to understand all reported findings for...
+		Fei Protocol
+			https://consensys.net/diligence/audits/2021/01/fei-protocol
+		Uniswap V3
+			https://github.com/Uniswap/uniswap-v3-core/blob/main/audits/tob/audit.pdf
+		Chainlink
+			https://github.com/sigp/public-audits/blob/master/chainlink-1/review.pdf
+		Opyn Gamma Protocol
+			https://blog.openzeppelin.com/opyn-gamma-protocol-audit/
+	Watch
+		https://www.youtube.com/playlist?list=PLdJRkA9gCKOONBSlcifqLig_ZTyG_YLqz	
