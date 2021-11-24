@@ -1,5 +1,7 @@
-NOTE
-	Instead of re-typing the article to drill in into my mind, I'll just write the 'lesson learned' instead
+NOTE:
+	Normally I have this all well written out with no spelling errors, but this time I wanted to type the info out
+	  as fast as I can just to read and process the information as quickly as possible
+
 1
 	You need to be aware that ERC20 functions `transfer` and `transferFrom` might not revert of failure
 	Sometimes they can return 0/false and if you don't plan for that then you had have a bad time
@@ -193,4 +195,869 @@ NOTE
 		Implementing a pull pattern for token withdrawals should solve the issue
 		Users will be able to quit the LAO and burn their shares but still keep their tokens in the LAO's contract for some time
 		  if they can't withdraw them right now
-	
+27
+	The protocol `The LAO` has a process of creating a proposal
+	If someone submits a proposal and transfers some amount of tribute tokens, these tokens are transferred back if the proposal
+	  is rejected
+	But if the proposal is not processed before the emergency processing, these tokens will not be transferred back to the
+	  proposer
+	This might happen if a tribute token or a deposit token transfers are blocked	
+	Tokens are not completely lost in this case, they now belong to the LAO shareholders and they might try to return that money
+	But that requires coordination and time and everyone who ragequits during that time will take a part of the tokens with them
+	Recommendation
+		Pull pattern for token transfers would solve the issue
+28
+	The protocol `The LAO` has emergency processing, this mechanism exists incase there is a chance that some token transfers
+	  are blocked
+	EG a sender or receiver is in the USDC blacklist
+	Emergency processing saves from this problem by not transferring tribute tokens back to the user (if there is some) and 
+	  rejecting the proposal
+	The problem is that there is still a deposit transfer back to the sponsor and it could be potentially blocked too
+	If that happens, proposal can't be processed and the LAO is blocked
+	Recommendation
+		Pull pattern for tokens transfers would solve this issue
+29
+	The protocol `The LAO` can have a token overflow
+	If a token overflows, some functionality such as `processProposal`, `cancelProposal` will break due to SafeMath reverts
+	The The overflow could happen because the supply of the token was artifically inclated into oblivion
+	Recommendation
+		Allow overflow for broken or malicious tokens
+		This is to prevent system halt or loss of funds
+30
+	The protocol `The LAO` has a function called `_ragequit` which iterates over all whitelisted tokens
+	If the number of tokens is too big, a TX can run out of gas and all funds will be blocked forever
+	Recommendation
+		Simple solution is to limit the number of whitelisted tokens
+		If you don't want to do that, you can add a function that removes tokens from the whitelist individually
+31
+	The protocol `The LAO` has a `bailout` function that allows anyone to transfer kicked user's funds to the summoner if the user
+	  does not call safeRagequit (which forces the user to lose some funds)
+	The intention is for the summoner to transfer these funds to the kicked member afterwards
+	The issue is that it requires a lot of trust to the summoner and requires more time to kick the member out of the LAO
+	Recommendation
+		By implementing a pull pattern for token transfers the kicked member won't be able to block the ragequit and the LOA
+		  members would be able to kick anyone much quicker
+		There would be no need to keep the `bailout` function
+32
+	The protocol `The LAO` has a proposal submission and sponsorship
+	They are done in two different TXs
+	It's possible to front-run the `sponsorProposal` function by any member
+	The incentive to do that is to be able to block the proposal afterwards
+	Recommendation
+		Pull pattern for token transfers will solve the issue
+		Front-running will still be possible but it it doesn't affect anything
+33
+	The protocol `The LAO` you can delegate
+	The function `delegateKey` can be frontrun
+	If you try to submit an address to your `delegateKey`, someone else can assign your delegate address to themselves
+	While the incentive of this action is unclear, it's possible to block some address from being a delegate forever
+34
+	In the protocol `Origin Dollar` you have governance and actions that can be proposed are managed with a timelock
+	Only the admin can call `Timelock.cancelTransaction`
+	There are no functions in Governor that call Timelock.cancelTransaction
+	This makes it impossible for Timelock.cancelTransaction to ever be called
+	Basically: Queued TXs cannot be canceled
+	Recommendation
+		Short term, add a function to the Govenor that calls `Timelock.cancelTransaction`
+		It is unclear who should be able to call it, and what other restrictions there should be
+		Long term, consider letting Governor inherit from Timelock
+35
+	In the protocol `Origin Dollar`
+	There are missing access controls in the `Timelock.executeTransaction` function allow Proposal TXs to be executed separately
+	  circumventing the Governor.execute function
+	It's meant to only be called through `Governor.execute` but you can just call `Timelock.executeTransaction` directly
+	Recommendation
+		In short term, only allow the admin to call `Timelock.executeTransaction`
+36
+	In the protocol `Origin Dollar`
+	The governor contract contains special functions to let the guardian queue a TX to change the `Timelock.admin`
+	However, a regular Proposal is also allowed to contain a TX to change the `Timelock.admin`
+	This poses an unnecessary risk in that an attacker could create a Proposal to change the `Timelock.admin`
+	Recommendation
+		Short term, add a check that prevents `setPendingAdmin` to be included in a Proposal
+	Basically: Anybody can create a proposal to become the timelock admin
+37
+	In the protocol `Origin Dollar`
+	In the function `mintMultiple` there is missing checks and no reentrancy prevention
+	This allows untrusted contracts to be called from `mintMultiple`
+	This could be used by an attacker to drain the contracts
+	Recommendation
+		Short term, add checks that cause mintMultiple to revert if the amount is zero or the asset is not supported
+		Add a reentrancy guard to the `mint`, `mintMultiple`, `redeem` and `redeemAll` functions
+		Should also have used Slither
+38
+	In the protocol `Origin Dollar`
+	Several function calls do not check the return value
+	Without a return value check, the code is error-prone, which may lead to unexpected results
+	Recommendation
+		Short term
+			Check the return value of all calls mentioned above
+		Long term
+			Subscribe to Crytic.io to catch missing return checks
+			Cryptic identifies this bug type automatically
+39
+	In the protocol `Origin Dollar`
+	Several function calls are made in unbounded loops
+	This pattern is error-prone as it can trap the contracts due to the gas limitations or failed transactions
+	Recommendation
+		Short term
+			Review all the loops mentioned above and either
+			1
+				Allow iteranion over part of the loop
+			2
+				Remove elements
+40
+	In the protocol `Origin Dollar`
+	Under certain circumstances, the OUSD contract allows users to transfer more tokens than the ones they have in their balance
+	This is caused by a rounding issue when the `creditsDeducted` is calculated and subtracted
+	Recommendation
+		Short term
+			Make sure the balance is correctly checked before performing all the arithmetic operations
+			This will make user it does not allow to transfer more than expected
+		Long term
+			Use a tool Echidna to write properties to ensure that ERC20 transfers are transferring the expected amount
+41
+	In the protocol `Origin Dollar` The OUSD token contract allows users to opt out of rebasing effects
+	At that point, their exchange rate is 'fixed' and further rebases will not have an impact on token balances (until user opts in)
+	Basically: OUSD total supply can be arbitrary, even smaller than user balances
+	Recommendation
+		Short term
+			Make clear all common invariant violations for users and other stakeholders
+		Long term
+			Design the system in such a way to preserve as many commonplace invariants as possible
+42
+	The protocol `Yield Protocol` there is a flashMinting feature that can be used to redeem an arbitrary amount of funds from
+	  a mature token
+	But the flash minting can be used to redeem `fyDAI`
+	Recommendation
+		Short term
+			Disallow calls to redeem in the `YDai` and Unwind contracts during flash minting
+		Long term
+			Do not include operations that allow any user to manipulate an aribtrary amount of funds, even if it is
+			  in a single TX
+			This will prevent attackers from gaining leverage to manipulate the market and break internal invariants
+43
+	In the protocol `Yield Protocol`
+	`YDai` implements the draft ERC2612 via the ERC20Permit contract it inherits from
+	This allows a third parts to transmit a signature from a token holder that modifies the ERC20 allowance for a particular user
+	These signatures are used in calls to permit in ERC20Permit do not account for chain splits
+	The chainID is included in the domain separator
+	However, it is not updatable and not included in the signed data as part of the permit call
+	As a result, if the chain forks after deployment, the signed message may be considered valid on both forks
+44
+	The protocol `Hermez`
+	There is a lack of contract existence check allows token theft
+	Since there's no existence check for contracts that interacts with external tokens, an attacker can steal funds by registering 
+	  a token that's not yet deployed
+	`_safeTransferFrom` will return success even if the token is not yet deployed, or was self-destructed
+	An attacker that known the address of a future token can register the token in Hermez, and deposit any amount prior to the token
+	  deployment
+	Once the contract is deployed and tokens have been deposited in Hermez, the attacker can steal the funds
+	The address of a contract to be deployed can be determined by knowing the address of its deployer
+	Recommendation
+		Short term
+			Check for contract existence in `_safeTransferFrom`
+			Add a similar check for any low-level calls, including in `WithdrawalDelayer`
+			This will prevent an attacker from listening and depositing tokens in a contract that is not yet deployed
+		Long term
+			RTFM
+45
+	In the protocol `Hermez` it relies on a voting system that allows anyone to vote with any weight at the last minute
+	As a result, anyone with a large fund can manipulate the vote
+	Hermez's voting mechanism relies on bidding
+	There is no incentive for users to bid tokens well before the voting ends
+	Users can bid a large amount of tokens just before voting ends, and anyone with a large fund can decide the outcome of the vote
+	As all the votes are public, users bidding earlier will be penalized, because their bids will be known by the other
+	  participants
+	An attacker can know exactly how much currency will be necessary to change the outcome of the voting just before it ends
+	Recommendation
+		Short term
+			Explore ways to incentiveze users to vote earlier
+			Consider a weighted bid, with a weight decreasing over time
+			While it won't prevent users with unlimited resources from manipulating the vote as the last minute, it will
+			  make the attack more expensive and reduce the change of vote manipulation
+		Long term
+			Stay up to date with blockchain-based online voting and bidding
+			It's a know challenge, no perfect solution has been found yet
+46
+	In the protocol `Hermez`
+	The system uses the same account to change both the frequently updated parameters and those that require less frequent updates
+	This architecture is error-prone and increases the severity of any privilaged account compromises
+	Recommendation
+		Short term
+			Use a separate account to handle updating the tokens/USD ratio
+			Using the same account for critical operations and update the token/USD ratio increases underlying risks
+		Long term
+			Document access controls and set up proper authorization architecture
+47
+	In the protocol `Hermez`
+	Several critical operations are done in one function call
+	This schema is error-prone and can lead to irrevocable mistakes
+	For example, the setter for which the whitehack group address sets the address to the provided argument
+	If the address is incorrect, the new address will take on the functionality of the new role immediately
+	However, a two-step process is similar to the approve-transferFrom functionality
+	The contract approves the new address for a new role, and the new address acquires the role by calling the contract
+	Basically: lack of two-step procedure for critical operations leaves them error-prone
+	Recommendation
+		Short term
+			Use a two-step procedure for all non-recoverable critical operations to prevent irrecoverable mistakes
+		Long term
+			Identify and document all possible actions and their associated risks for privileged accounts
+48
+	In the protocol `Hermez`
+	`Hermez`, `HermezAuctionProtocol`, `WithdrawalDelayer` have initialization functions that can be front run, allowing an
+	  attacker to incorrectly initialize the contracts
+	Due to the use of `delegatecall` proxy pattern, `Hermez`, `HermezAuctionProtocol`, and `WithdrawalDelayer` cannot be initialized
+	  with a constructor, and have initializer function
+	All these functions can be front-run by an attacker, allowing them to initialize the contracts with malicious values
+	Recommendation
+		Short term
+			Use a factory pattern that will prevent front-running of the initialization
+			OR
+			Ensure deployment scripts are robust in case of a front-runnig attack
+49
+	In the protocol `UniswapV3`
+	A lack of input validation of `_owner` argument in both the constructor and `setOwner` functions could permanently lock the 
+	  owner role, requiring a costly redeploy
+	To resolve an incorrect owner issue, Uniswap would need to redeploy the factory contract and re-add pairs and liquidity
+	Users wouldn't like this and it would lead to reputational damage
+	Some users might decide not to switch to a new one which means you'll have two pairs of the same thing
+	Recommendation
+		Several improvements could prevent the four above mentioned cases
+			1) Designate msg.sender as the initial owner, and transfer ownership to the chosen owner after deployment
+			2) Implement a two-step ownership-change processt hrough which the new owner needs to accept ownership
+			3) If it needs to be possible to set the owner to address(0), implement a `renounceOwnership()` function
+50
+	In the protocol `UniswapV3`
+	An incorrect comparison in the swap function allows the swap to succeed even if no tokens are paid
+	This issue could be used to drain any pool of all its tokens at no cost
+	The swap function calculates how many tokens the initiator (msg.sender) needs to pay (amountIn) to receive the requested
+	  amount of tokens (amountOut)
+	It then calls the `uniswapV3SwapCallback` function on the initiators account, passing in the amount of tokens to be paid
+	The callback function should then transsfer at least the requestend amount of tokens to the pool contract
+	Afterward, a require inside the swap function verifies that the correct amount of tokens (amountIn) has been transferred to
+	  the pool
+	However, the check inside the requrie is incorrect
+	The operand used is >= instead of <=
+	Recommendation
+		Replace >= <=
+51
+	In the protocol `UniswapV3` 
+	The swap function relies on an unbounded loop
+	An attacker could disrupt swap operations by forcing the loop to go through too many operations, potentially trapping the swap
+	  due to a lack of gas
+	Recommendation
+		Bound the loops and document the bounds
+52
+	In the protocol `UniswapV3`
+	A frontrun on `UniswapV3Pool.initialize` allows an attacker to set an unfair price and to drain assets from the first
+	  deposits
+	There are no access controls on the initialize function, so anyone could call it on a deployed pool
+	Initializng a pool with an incorrect price allows an attacker to generate profits from the initial liquidity provider's deposits
+	Recommendation
+		1) Moving the price operations from initialize to the constructor
+		2) Adding access contracts to initialize
+		3) Ensuring that the documentation clearly warns users about incorrect initialization
+53
+	In the protocol `UniswapV3`
+	Swapping on a tick with zero liquidity enables a user to adjust the price of 1 wei of tokens in any direction
+	As a result, an attacker could set an arbitrary price at the pool's initialization or if the liquidity providers withdraw
+	  all of the liquiditiy for a short time
+	Recommendation
+		No straightforward way to prevent this issue
+		Ensure pools don't end up in unexpected states
+		Warn users of potential risks
+54
+	In the protocol `UniswapV3`
+	Failed transfer may be overlooked due to lack of contract existence check
+	Because the pool fails to check that a contract exists, the pool may assume that failed TXs invoving destructed tokens are
+	  successful
+	`TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contracts' existence
+	As a result, if the tokens have not yet been deployed, safeTransfer will return success even though no transfer was executed
+	Recommendation
+		Short term
+			Check the contract's exestence prior to the low-level call
+		Long term
+			Avoid low-level calls
+55
+	In the protocol `DFX Finance` there is use of undefined behaviour in an equality check
+	On the LHS of the equality check, there is an assignment of the variables `outputAmt_`
+	The RHS uses the same variable
+	The solidity 0.7.3 documentation states that...
+	  """
+	  The evaliatuon order of expressions is not specified (more formally, the order
+	  in which the children of one node in the expression tree are evaluated is not specified, but they are of course evaluated
+	  before the node itself). It is only guaranteed that statements are executed in order and short-circuiting for boolean
+	  expressions is done
+	  """
+	This means that this check constitutes an instance of undefined behaviour
+	As such, the behavior of this code is not specified and could change in a future release of Solidity
+	Recommendation
+		Short term
+			Rewrite the `if` statement such that it does not use and assign the same variable in an equality check
+		Long term
+			Ensure that the codebase does not contain undefined solidity or EVM behaivour
+56
+	In the protocol `DFX Finance`
+	The system converts raw values to numeraire values for its internal arithmetic
+	However, in one instance it uses raw values alongside numeraire values
+	Interchanging raw and numeraire values will produce unwanted results and may result in loss of funds for liquidity provider
+	Recommendation
+		Short term
+			Change the semantics of the three functions listed above in the CADC, XSGD and EURS assimilators to return
+			  the numeraire balance
+		Long term
+			Use unit tests and fuzzing to ensure that all calculations return the expected values
+57
+	In the protocol `DFX Finance`
+	System always assumes USDC is equivalent to USD
+	Throughout the system, assimilators are used to facilitate the processing of various stablecoins
+	However, the UsdcToUsdAssimilator's implementation of the `getRate` method does not use the USDC-USD oracle provided by 
+	  chainlink
+	Instead, it assumes USDC is always worth 1 USD
+	A deviation in the exchange rate of 1 USDC = 1USD could result in exchange errors
+	Recommendation
+		Short term
+			Replace with an oracle
+		Long term
+			Ensure that system is robust against decrease in the price of any stablecoin
+58
+	In the protocol `DFX Finance`
+	Assimilators use a deprecated chainlink API
+	The old version of the Chainlink price feed API (AggregatorInterface) is used throughout the contracts and tests
+	EG the deprecated function `latestAnswer` is used
+	This function is not present in the latest API reference (AggregatorInterfaceV3)
+	However, it is present in the deprecated API reference
+	In the worst-case scenario, the deprecated contract could cease to report the latest values, which would very likely cause
+	  liquidity providers to incur losses
+59
+	In the protocol `0x protocol`
+	The function `cancelOrdersUpTo` can be used to permanently block future orders
+	Users can cancel an arbitrary number of future orders, and this operation is not reversible
+	The `cancelOrdersUpTo` function can cancel an arbitrary number of orders in a single, fixed-size TX
+	This function uses a parameter to discard any order with salt less than the input value
+	However, `cancelOrdersUpTo` can cancel future orders if it is called with a very large value (EG MAX_UINT256-1)
+	This operation will cancel future orders, except for the one with salt equal to MAX_UINT256
+60
+	In the protocol '0xProtocol'
+	There is a specification-code mismatch for `AssetProxyOwner` timelock period
+	The specification for `AssetProxyOwner` says 
+	  """
+	  The AssetProxyowner is a time-locked multi-signature wallet that has permission to perform administrative functions within
+	  the protocol. Submitted TXs must pass a 2 week timelock before they are executed
+	  """
+	The `MultiSigWalletWithTimelock.sol` and `AssetProxyOwner.sol` contracts' timelock-period implementation/usage does not enfore 
+	  the two week-period, but is instead configurable by the wallet owner without any range checks
+	Either the specification is outdated (most likely) or this is a serious flaw
+	Recommendation
+		Short term
+			Implement the necessary range checks to enforce the timelock described in the specification
+			Otherwise correct the specification to match the intended behaviour
+		Long term
+			Make sure the implementation and specification are in sync
+			Use Echidna or Manticore to test that your code properly implemented the specification
+61
+	In the protocol `0xProtocol`
+	There is unclear documentation on how order filling can fail
+	The 0x documentation is unclear about how to determine whether orders are fillable or not
+	Even some fillable orders cannot be completely filled
+	The 0x specification does not state clearly enough how fillable orders are determined
+	Recommendation
+		Define a proper procedure to determine if an order is fillable and document it in the protocol specification
+		If necessary, warn the user about potential constraints on the orders
+62
+	In the protocol '0xProtocol'
+	Market makers have a reduced cost for performing front-running attacks
+	Market makers receive a portion of the protocl fee for each order filled, and the protocol fee is based on the TX gas price
+	Therefore market makers are able to specify a higher gas price for a reduced overall TX rate, using the refund they will
+	  receive upon disbursement of protocol fee pools
+	Basically: Market markets get a bit of protocol fee. That fee is calculated by tx.gasprice
+	  	So if they frontrun by paying high gas, they get some of it back
+		IE they have a reduced cost for frontrunning
+	Recommendations
+		Short term
+			Properly document this issue to make sure users are aware of this risk
+			Establish a reasonable cap for the `protocolFeeMultiplier` to mitigate this issue
+		Long term
+			Consider using an alternative fee that does not depend on the tx.gasprice to avoid reducing the cost of 
+			  performing front-running attacks
+63
+	In the protocol '0xProtocol'
+	The function `setSignatureValidatorApproval` has a race condition which may be exploitable
+	If a validator is compromised, a race condition in the signature validator approval logic becomes exploitable
+	The `setSignatureValidatorApproval` function allows users to delegate the signature validation to a contract
+	However, if the validator is compromised, a race condition in this function could allow an attacker to validate any amount
+	  of malicious TXs
+	Recommendations
+		Short term
+			Document this behaviour to make sure users are aware of the inherent risks of using validators in case of a 
+			  compromise
+		Long term
+			Consider monitoring the blockchain using the `SignatureValidatorApproval` events to catch front-running attacks
+64
+	In the protocol `0xProtocol`
+	Batch processing of TX execution and order matching may lead to exchange griefing
+	Batch processing of TX execution and order matching will iteratively process every TX and order, which all involve filling
+	If the asset being filled does not have enough allowance, the asset's `transferFrom` will fail, causing `AssetProxyDispatcher`
+	  to revert
+	`NoThrow` variants of batch processing, which are available for filling orders, are not available to TX execution and order
+	  matching
+	So if one TX or order fails this way, the entire batch will revert and will have to be re-submitted after the reverting 
+	  TX is removed
+	Recommendations
+		Short term
+			Implement `NoThrow` variants for batch processing of TX execution and order matching
+		Long term
+			Take into consideration the effect of malicious inputs when implementing functions that perform a batch of 
+			  operations
+65
+	In the protocol `0xProtocol`
+	Zero fee orders are possible if a user performs TXs with a zero gas price
+	Users can submit valid orders and avoid paying fees if they use a zero gas price
+	The computation of fees for each TX is performed in the `calculateFillResults` function
+	It uses the gas price selected by the user and the `protocolFeeMultiplier` coefficient
+	Since the user completely controls the gas price of their TX and the price could even be zero, the user could feasibly avoid
+	  paying fees
+	Recommendations
+		Short term
+			Select a reasonable minimu value for the protocol fee for each order or TX
+		Long term
+			Consider not depending on the gas price for the computation of protocol fees
+			This will avoid giving miners an economic advantage in the system
+66
+	In the protocol `0xProtocol`
+	Calls to `setParams` may set invalid value and produce unexpected behavior in the staking contracts
+	Certain parameters of the contracts can be configured to invalid values, causing a variety of issues and breaking expected
+	  interactions between contracts
+	`setParams` allows the owner of the staking contract to reparameterize critical parameters
+	However, reparameterization lacks sanity/threshold/limit checks on all parameters
+	Recommendations
+		Add proper validation checks on all parameteres in `setParams`
+		If the validation procedure is unclear or too complex to implement on-chain, document the potential issues that could 
+		  produce invalid values
+67
+	In the protocol `Synthetix EtherCollateral`
+	There is an improper supply cap limitation enforcement
+	The `openLoan()` function does not check if the loan issued will result in the supply cap being exceeded
+	It only enforces that the supply cap is not reacehd before the loan is opened
+	As a result, any account can create a loan that exceeds the maximum amount of sETH that can be issued by the EtherCollateral
+	  contract
+	Recommendation
+		Introduce a require statement in the `openLoan()` function to prevent the total cap being exceeded by the loan to
+		  be opened
+68
+	In the protocol `Synthetix EtherCollateral`
+	Improper storage management of open loan accounts
+	When loans are open, the associated account address gets added to the `accountsWithOpenLoans` arary regardless of whether
+	  the account already has a loan/is already included in the array
+	Additionally, it is possible for a malicious actor to create a denial of service condition exploiting the unbound storage array
+	  in `accountsSynthLoans`
+	Recommendation
+		Consider changing the `storeLoan` function to only push the account to the `accountsWithOpenLoans` arary if the loan to
+		  be stored is the first one for that particular account
+		Introduce a limit to the number of loans each account can have
+69
+	In the protocol `Synthetix EtherCollateral`
+	The contract owner can arbitrarily change minting fees and interest rates
+	The `issueFeeRate` and `interestRate` variables can both be changed by the `EtherCollateral` contract owner after the loans
+	  have been opened
+	As a result, the owner can control fees such as they equal/exceed the collateral for any given loan
+	Recommendation
+		While 'dynamic' interest rates are common, it is recommended to make the minting fee (issueFeeRate) to be a constant
+		  that cannot be changed by the owner
+70
+	In the protocol `InfiniGold`
+	There is inadequate proxy implementation preventing contract upgrades
+	The `TokenImpl` SCs require `Owner`, `name`, `symbol` and `decimals` of `TokenImpl` to be set by the `TokenImpl` constructor
+	Consider two SCs, contractA and contractB
+	If contract A performs a delegatecall on contractB, the state/storage variables of contract B are not accessible by contract A
+	Therefore, when `TokenProxy` targets an implementation of TokenImpl and interacts with it via a DELEGATECALL, it will not be
+	  able to access any of the state variables of the `TokenImpl` contract
+	Instead, the `TokenProxy` will access its local storage, which does not contain the variables set in the constructor of 
+	  the `TokenImpl` implementation
+	When the `TokenProxy` contract is constructed it will only initialize and set two storage slots
+		1) The proxy admin address (_setAdmin internal function)
+		2) The token implementation address (_setImplementation private function)
+	Henci when a proxy call to the implementation is made, variables such as `Owner` will be uninitialized
+	This is the equivalent to the owner being the 0x0 address
+	Without access to the implementation state variables, the proxy contract is rendered unusable
+	Recommendations
+		1
+			Set fixed constant parameters as Solidity constants
+			The solidity compiler replaces all occurrences of constants in the code and thus does not reserve state for them
+			Thus if the correct getters exist for the ERC20 interface, the proxy contract doesn't need to init anything
+		2
+			Create a constructor-like function that can only be called once with `TokenImpl`
+			This can be used to set the state variables as it is currently done in the consturctor, however if called
+			  by the proxy after deployment, the proxy will set its state variables
+		3
+			Create getter and setter functions that can only be called by the owner
+			Note that this strategy allows the owner to change various parameters of the contract after deployment
+		4
+			Predetermine the slots used by a contract are determinstinc and can be computed
+			Hence the variables `Owner`, `name`, `symbol` and `decimals` can be set directly by their slot in the proxy
+			  constructor
+71
+	In the protocol `InfiniGold`
+	Blacklisting bypass via `transferFrom()` function
+	The `transferFrom()` function in the `TokenImpl` contract does not verify that the sender (IE the from address) is not 
+	  blacklisted
+	As such, it is possible for a user to allow an account to spend a certain allowance regardless of their blacklisting status
+	Recommendation
+		At present the function `transferFrom()` uses the `notBlacklisted(address)` modifier twice, on the msg.sender and
+		  `to` addresses
+		The `notBlacklisted(address)` modifier should be used a third time against the from address
+72
+	In the protocol `Syntetix Unipool`
+	There is a wrong order of operations leads to exponentiation of `rewardPerTokenStored`
+	`rewardPerTokenStored` is mistakenly used in the numerator of a fraction instead of being added to the fraction
+	The result is that `rewardPerTokenStored` will grow exponentially thereby severely overstating each invididual's rewards earned
+	Individuals will therefore either be able to witdraw more funds than should be allocated to them or they will not be able
+	  to withdraw their funds at all as the contract has insufficient SNX balance
+	This vulnerability makes the Unipool contract unusable
+73
+	In the protocol `Synthetix Unipool`
+	Staking before initial `notifyRewardAmount` can lead to disproportionate rewards
+	If a user successfully stakes an amount of UNI tokens before the function `notifyRewardAmount()` is called for the time, their
+	  initial `userRewardPerTokenPaid` will be set to zero
+	The staker would be paid out funds greater than their share of the SNX rewards
+	Recommend
+		Consider handling the case where the reward period has not elapsed without reverting the call
+74
+	In the protocol `Synthetix Unipool`
+	External call reverts if pperiod has not elapsed
+	The function `notifyRewardAmount()` will revert if `block.timestamp >= periodFinish`
+	However this function is called indirectly via the `Synthetix.mint()` function
+	A revert here would cause the external call to fail and thereby halt the mint process
+	`Synthetix.mint()` cannot be successfully called until enough time has elapsed for the period to finish
+	Recommendation
+		Consider handling the case where the reward period has not elapsed without reverting the call
+75
+	In the protocol `Synthetix Unipool`
+	Gap between periods can lead to erroneous rewards
+	The SNX rewards are earned each period based on reward and duration as specified in the `notidyRewardAmount()` function
+	The contract will output more rewards than it receives
+	Therefore if all stakers call `getReward()` the contract will not have enough SNX balance to transfer out all the rewards
+	  and same stakers may not receive any rewards
+	Recommendation
+		Enforce each period start exactly at the end of the previous period
+76
+	In the protocol `Chainlink`
+	Malicious users can hijack or perform DOS attacks on requests of Chainlinked contracts by replicating or frontrunning legit
+	  requests
+	The Chainlinked (Chainlinked.sol) contract contains the `checkChainlinkFulfillment()` modifier
+	This modifier is demonstrated in the examples that come with the repository
+	In these examples this modifier is used within the functions which contracts implement that will be called by the Oracle when
+	  fulfilling requests
+	It requires that the caller of the function be the oracle that corresponds to the request that is being fulfilled
+	Thus, requests from Chainlinked contracts are expected to only be fulfilled by the Oracle that they have requested
+	However, because a request can specify an arbitrary callback address, a malicious user can also place a request where the
+	  callback address is a target Chainlinked contract
+	If this malicious request gets fulfilled first (which can ask for incorrect or malicious results), the Oracle will call the
+	  legitimate contract and fulfill it with incorrect or malicious results
+	Because the known requests of a Chainlinked contract gets deleted, the legitimate request will fail
+	It could be such that the Oracle fulfils requests in the order in which they are received
+	In such cases, the malicious user could simply front-run the requests to be higher in the queue
+	Recommendation
+		This issue arises due to the fact that any request can specify its own arbitrary callback address
+		A restrictive solution would be where callback addresses are localised to the requester themselves
+77
+	In the protocol `UMA Phase`
+	There is a lack of event transmission after sensitive actions
+	The `_getLatestFundingRate` function of the `FundingRateApplier` contract does not emit relevant events after executing the 
+	  sensitive actions of setting the `fundingRate`, `updateTime`, and `proposalTime`, and transferring the rewards
+	Recommendation
+		Consider emitting events after sensitive changes take place, to facilitate tracking and notify off-chain clients
+		  following the contract's activity
+78
+	In the protocol `UMA Phase`
+	There are functions with unexpected side-effects
+	EG `_getLatestFundingRate` function of the `FundingRateApplier` contract might also update the funding rate and send rewards
+	The `getPrice` function of the `OptimisticOracle` might also settle a price request
+	These side-effect actions are not clear in the name of the functions and are thus unexpected, which could lead to mistakes
+	  when the code is modified by newe developers not experiences in all the implementation details of the project
+	Recommendation
+		Consider splitting these functions in separate getters and setters
+		Alternatively, consider renaming the functions to describe all the actions that they perform
+79
+	In the protocol `1Inch Liquidity Protocol`
+	'Mooniswap' pairs cannot be unpaused
+	`MooniswapFactoryGovernance` contract has a shutdown function that can be used to pause the contract and prevent any future
+	  swaps
+	However there is no function to unpause the contract
+	There is also no way for the factory contract to redeploy a 'Mooniswap' instance for a given pair of tokens
+	Therefore if a 'mooniswap' contract is ever shutdown/paused, it will not be possible for that pair of tokens to ever be
+	  traded on the 'Mooniswap' platform again unless a new factory contract is deployed
+	Recommendations
+		Consider providing a way for Mooniswap contracts to be unpaused
+80
+	In the protocol `FutureswapV2`
+	Attackers can prevent honest users from performing instant withdraw from the Wallet contract
+	An attacker who sees an honest user's call to the `MessageProcessor.instantWithdraw` in the mempool can grab the `oracleMessage`
+	  and `oracleSignature` parameters from the user's TX, then submit their own TX to `instantWithdraw` using the same parameters,
+	  a higher gas price, (to frontrun the honest users TX), and carefully choosing the gas limit for their TXs such that the
+	  internal call to the `callInstantWithdraw` will fail on line 785 with on OOG error, but will successfully execute the
+	  `if(!success)` block
+	The result is that the attacker's instant withdraw will fail (so the user will not receive their funds), but the
+	  `userInteractionNumber` will be successfully reserved by the `ReplayTracker`
+	As a result, the honest user's TX will revert because it will be attempting to use a `userInteractionNumber` that is no longer
+	  valid
+	Recommendation
+		Consider adding an access control mechanism to restrict who can submit `oracleMessages` on behalf of the user
+81
+	In the protocol `FutureswapV2`
+	Not using upgrade safe contracts in `FsToken` inheritance
+	The `FsToken` contract is intended to be an upgradable contract, used behind a proxy (namely, the FsTokenProxy) contract
+	However, the contracts ERC20Snapshot, ERC20Mintable, and ERC20Burnable in the inheritance chain of `FsToken` are not imported
+	  from the upgrade safe library `@openzeppelin/contracts-ethereum-package` but instead `@openzeppelin/contracts`
+	Reccomendation
+		Use the upgrades safe library in this case will ensure the inheritance from Initializable and the other contracts is 
+		  always linearized as expected by the compiler
+82
+	In the protocol `FutureswapV2`
+	There is unchecked output of the ECDSA recover function
+	The `ECDSA.recover` function (in version 2.5.1) return address(0) if the signature provided is invalid
+	This function is used twice in the Futureswap code
+		Once to recover the address from their signature
+		Again to recover the user's address from their signature
+	If the oracle signature was invalid, the `oracleAddress` is set to address(0)
+	Similarly, if the user's signature is invalid, then the `userMessage.signer` or the withDrawer is set to address(0)
+	This can result in unintended behaviour
+	Recommendation
+		Consider reverting if the output of the ECDSA.recover is ever address(0)
+83
+	In the protocol `Notional Protocol`
+	Adding new variables to multi-level inherited upgradable contracts may break storage layout
+	The Notional protocol uses the OZ/SDK contracts to manage upgradability in the system, which follows thu unstructured storage
+	  pattern
+	When using this upgradeability approach, and when working with multi-level inheritance, if a new variable is introduced in
+	  a parent contract, that addition can potentially overwrite the beginning of the storage layout of the child contract, causing
+	  critical misbehaviours in the system
+	Recommendation
+		Consider preventing these scenarios by defining a storage gap in each upgradable parent contract at the end of all 
+		  storage variables definitions as follows
+			`uint256[50] __gap; //gap to reserves torage in the contract for future variables additions`
+		In such an implementation, the size of the gap would be intentionally decreased each time a new variable was
+		  introduced, thereby avoiding overwriting pre-existing storage values
+84
+	In the protocol `GEB Protocol`
+	There is unsafe division in `rdivide` and `wdivide` functions
+	The function `rdivide` on line 227 and the function `wdivide` on line 230 of the `GlobalSettlement` contract, accept the divisor
+	  `y` as an input parameter
+	However, these functions do not check if the value of `y` is 0
+	If that is the case, the call will revert due to the division by zero error
+	Recommendation
+		Consider adding a require statement to make sure that `y > 0`
+85
+	In the protocol `1Inch Exchange`
+	There is incorrect usafe of `safeApprove`
+	The `safeApprove` function of the OZ SafeERC20 library prevents changing an allowance between non-zero values to mitigate a 
+	  possible front-running attack
+	Instead, the `safeIncreaseAllowance` and `safeDecreaseAllowance` functions should be used
+	However, the `UniERC20` library simply bypasses this restriction by first setting the allowance to zero
+	This reintroduces the front-running attack and undermines the value of the `safeApprove` function
+	Consider introducing an `increaseAllowance` function to handle this case
+	Recommendation
+		`safeIncreaseAllowance` and `safeDecreaseAllowance` functions should be used
+86
+	In the protocol `Opyn Gamma`
+	ETH could get trapped in the protocol
+	The Controller contract allows users to send arbitrary actions such as pollible flash loans through the `_call` internal 
+	  function
+	Among other features, it allows sending ETH with the action to then perform a call to a `CalleeInterface` type of contract
+	To do so, it saves the original `msg.value` sent with the operate function call in the `ethLeft` variable and it updates
+	  the remaining ETH left after each one of those calls to revert in case that is not enough
+	Nevertheless, if the user sends more than the necessary ETH for the batch of actions, the remaininng ETH (stored in the 
+	  `ethLeft` variable after the last iteration) will not be returned to the user and will be locked in the contract due to the
+	  lack of a `withdrawEth` function
+	Recommendation
+		Return all remaining ETH or create a withdraw function
+		Take into account that if you push ETH you may trigger a fallback function
+87
+	In the protocol `Opyn Gamma`
+	Use of transfer might render ETH impossible to withdraw
+	When withdrawing ETH deposits, the `PayableProxyController` contract uses Solidity's `transfer` function
+	This has some notable shortcomings when the withdrawer is a SC, which can render ETH deposits impossible to withdraw
+	Specifically, the withdrawals will inevitably fail when...
+		The withdrawer SC does not implement a payable fallback function
+		The withdrawer SC implements a payable fallback function that uses more than 2300 gas
+		The withdrawer SC implements a payable fallback function that needs less than 2300 gas units but is called through
+		  a proxy that raises the call's gas usage above 2300
+	Recommendation
+		`sendValue` function available in OpenZeppelin Conract's Address library can be used to transfer the withdrawn Ether
+		  without being limited to 2300 gas units
+		Risks of reentrancy stemming from the use of this function can be mitigated by tightly following the 
+		  'check-effects-interactions' pattern as well as using OZ reentrancyguard
+88
+	In the protocol `Endaoment`
+	Not following the 'check-effects-interactions' pattern
+	The `finalizeGrant` function of the Fund contract is setting the `grant.complete` storage variable after a token transfer
+	Solidity recommends the usage of the 'check-effects-interaction' pattern to avoid potential security issues, such as reentrancy
+	The `finalizeGrant` function can be used to conduct a reentrancy attack, where the token transfer in like 129 can call back
+	  again the same function, sending to the admin multiple times an amount of fee, before setting the grant as completed
+	In this way the `grant.recipient` can receive less that expected and the contract funds can be drained unexpectedly leading to
+	  an unwanted loss of funds
+	Recommendation
+		Consider always following the 'check-effects-interactions' pattern, thus modifying the contract's state before making
+		  any external call to other contracts
+89
+	In the protocol `Audius`
+	Updating the governance registry and guardian address emits no events
+	In the governance contract the `registryAddress` and `guardianAddress` are highly sensitive accounts
+	The first one holds the contracts that can be proposal targets, and the second one is a superuser account that can execute
+	  proposals without voting
+	These variables can be updated by calling `setRegistryAddress` and `transferGuardship`, respectively
+	Note that these two functions update sensitive addresses without logging any events
+	Stakers who monitor the Audius system would have to inspect all TXs to notice that one address they trust is replaced
+	  with an untrusted one
+	Recommendation
+		Consider emitting events when these addresses are updates
+		It will be more transparent and make it easier for clients to subscribe to events if they want to keep track
+90
+	In the protocol `Audius`
+	The quorum requirement can be trivially bypassed with sybil-accounts
+	While the final vote on a proposal is determined via a token-weighted vote, the quorum check in the `evaluateProposalOutcome`
+	  function can be trivially bypassed by splitting one's tokens over multiple accounts and voting with each of the accounts
+	Each of these sybil votes increases the `proposals[_proposalId].numVotes variable
+	This means anyone can make the quorum check pass
+	Recommendation
+		Consider measuring quorum size by the percentage of existing tokens that have voted, rather than the number of unique
+		  accounts that have voted
+91
+	In the protocol `Audius`
+	When a contract is initialized, its `isInitialized` state is set to true
+	Since interacting with uninitialized contracts would cause problems, the `_requireIsInitialized` function is available to make
+	  this check
+	However, this check is not used consistently
+	EG, it is used in the `getVotingQuorum` function of the Governance contract, but it is not used in the `getRegistryAddress`
+	  function of the same contract
+	There is no obvious difference between the functions to explain this difference, and it could be misleading and cause 
+	  uninitialized contracts to be called
+	Recommendation
+		Consider calling `_requireIsInitialized` consistently in all functions of the `InitializableV2` contracts
+92
+	In the protocol `Audius`
+	The voting period and quoram can be set to zero
+	When the Governance contract is initialized, the values of the `votingPeriod` and `votingQuorum` are checked to make sure that
+	  they are greater than 0
+	However, the corresponding setter functions to `setVotingPeriod` and `setVotingQuorum` allow these variables to be reset to 0
+	Setting the `votingPeriod` to zero would cause spurious proposals that cannot be voted
+	Setting the `quorum` to zero is worse because it would allow proposals with 0 votes to be executed
+	Recommendation
+		Consider adding the validation to the setter functions
+93
+	In the protocol `Audius`
+	Some state variables are not set during initialize
+	The Audius contracts can be upgraded using the unstructured storage proxy pattern
+	This pattern requires the use of an initializer instead of the constructor to set the initial values of the state variables
+	In some of the contracts, the initializer is not initializing all of the state variables
+	Recommendation
+		Consider setting all the required variables in the initializer
+		If there is a reason for leaving them uninitialized, consider documenting it, and adding checks on the functions
+		  that use those variables to ensure that they are not called before initialization
+94
+	In the protocol `Primitive`
+	Expired and/or paused options can still be traded
+	Option tokens can still be freely transferred when the Option contract is either paused or expired (or both)
+	This would allow malicious option holders to sell paused/expired options that cannot be exercised in the open market to
+	  exchanges and users who do not take the necessary percautions before buying an option minted by the `Primitive Protocol`
+	Recommendation
+		If this is the systems expected behaviour, consider explicitly documenting it
+		Otherwise consider implementing necessary logic in the option conract to prevent transfers of tokensduring pause
+		  and after expiration
+95
+	In the protocol `ACO protocol`
+	ERC20 transfers can misbehave
+	The `_transferFromERC20` function is used throughout `ACOToken.sol` to handle transferring funds into the contract from a user
+	It is called within `mint`, within `mintTo` and within `_validateAndBurn`
+	In each case, the destination is the `ACOToken` contract
+	Such transfers may behave unexpectedly if the token contract charges fees
+	EG: USDT does not presently charge any fees upon transfer, but it has the potential to do so
+	In this case the amount received would be less than the amount sent
+	Such tokens have the potential to lead to protocl insolvency when they are used to mint new `ACOTokens`
+	In the case of `_transferERC20`, similar issues can occur, and could cause users to receive less than expected when collateral
+	  is transferred or when execrice assets are transferred
+	Recommendation
+		Consider thoroughly vetting each token used with an ACO options pair, ensuring that failing `transferFrom` and 
+		  `transfer` calls will cause reverts within `ACOToken.sol`
+		Additionally, consider implementing some sort of sanity check which enforces that the balance of the `ACOToken` contract
+		  increases by the desired amount when calling `_transferFromERC20`
+96
+	In the protocol `Compound open price feed`
+	There is incorrect event emission
+	The `UniswapWindowUpdate` event of the `UniswapAchoredView` contract is currently being emitted in the `pokeWindowValues` 
+	  function using incorrect values
+	In particular, as it is being emitted before relevant state changes are applied to the `oldObservation` and `newObservation`
+	  variables, the data logged by the event will be outdated
+	Recommendation
+		Consider emitting the `UniswapWindowUpdate` event after changes are applied so that all logged data is up-to-date
+97
+	In the protocol `MCDEX Mai Protocol`
+	Anyone can liquidate on behalf of another account
+	The Perpetual contract has a public `liquidateFrom` function that bypasses the checks in the `liquidate` function
+	This means that it can be called to liquidate a position when the contract is in the SETTLED state
+	Additionally, any user can set an arbitrary `from` address, causing a third-party user to confiscate the under-collateralized
+	  trader's position
+	This means that any trader can unilaterally rearrange another account's position
+	They could also liquidate on behalf of the Perpetual Proxy, which could break some of the Automated Market Maker invariants,
+	  such as the condition that it only holds LONG positions
+	Recommendation
+		Consider restricter `liquidateFrom` to internal visibility
+98
+	In the protocol `MCDEX Mai Protocol`
+	Orders cannot be cancelled
+	When a user or broker calls `cancerOrder`, the cancelled mapping is updated, but this has no subsequente effects
+	In particular, `validateOrderParam` does not check if the order has been cancelled
+	Recommendation
+		Consider adding this check to the order validation to ensure cancelled orders cannot be filled
+99
+	In the protocol `MCDEX Mai Protocol`
+	There are re-entrancy possibilities
+	There are several examples of interactions preceding effects
+		1
+			In the deposit function of the `Collateral` contract, collateraly is retrieved before the user balance is
+			  updated and anv event is emitted
+		2
+			In the `_withdraw` function of the `Collateral` contract, collateral is sent before the event is emitted
+		3
+			The same pattern occurs in the `depositToInsuranceFund`, `depositEtherToInsuranceFund` and 
+			  `withdrawFromInsuranceFund` functions of the `Perpetual` contract
+	It should be noted that even when a correctly implemented ERC20 contract is used for collateral, incoming and outgoing 
+	  transfers could execute arbitrary code if the contract is also ERC777 compliant
+	These re-entrancy opportunities are unlikely to corrupt the internal state of the system, but they would affect the order and
+	  contents of emitted events, which could confuse external clients about the state of the system
+	Recommendation
+		Follow the pattern `check-effects-interactions`
+		Or use reentrancyguard OZ contract
+100
+	In the protocol `MCDEX Mai protocol`
+	Governance parameter changes should not be instant
+	Many sensitive changes can be made by any account with the `WhitelistAdmin` role via the functions `setGovernanceParamater`
+	  within the `AMMGovernance` and `PerpetualGovernance` contracts
+	EG the `WhitelistAdmin` can change the fee schedule, the initial and maintenance margin rates, or the lot size parameters, 
+	  and thees new parameters instantly take effect in the protocol with important effects
+	EG raising the maintenance margin rate could cause `isSafe` to return False when it would have previously returned true
+	This would allow the user's position to be liquidated
+	By changing `tradingLotSize`, trades may revert when being matched, where they would not have before the change
+	These are only examples, the complexity of the protocol, combined with unpredictable market conditions and user interactions
+	  means that any other negative effects likely exist as well
+	Recommendation
+		Since these changes are occasionally needed, but can create risk for the users of the protocol, consider implementing
+		  a time lock mechanism for such changes to take place
+		By having a delay between the signal of intent and the actual change, users will have time to revome their funds
+		  or close trades that would otherwise be at risk if the change happened instantly
+101
+	In the protocol `UMI Phase 1`
+	Votes can be duplicated
+	The Data Verification Mechanism uses a commit-reveal scheme to hide votes during the voting period
+	The intention to prevent voters from simply voting with the majority
+	However the current design allows voters to blindly copy each other's sumbissions, which undermines this goal
+	In particular, each commitment is a masked hash of the claimed price, but is not cryptographically tied to the voter
+	This means that anyone can copy the commitment of a target voter (EG someone with a larger balance) and submit it as their own
+	When the target voter reveals their salt and price, the copycat can 'reveal' the same values
+	Moreover, if a voter recognizes that has occurred during the commitment shane, they can also change their commitment to the
+	  same value, which may become an alternate Schelling point
+	Recommendation
+		Consider including the votera ddress within the commitment to prevent votes from being duplicated
+		Additionally, as a matter of good practice, consider including the relevant timestamp, price identifier, and
+		  round ID as well to limit the applicability (and reusability) of a commitment
