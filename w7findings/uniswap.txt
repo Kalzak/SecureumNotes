@@ -1,0 +1,253 @@
+EXECUTIVE SUMMARY
+	Date range specified
+	Amount of time specified
+	Number of assessors specified
+	Commit assessed
+	High level explanation of actions token
+	High level explanation of notable vulns
+	Total issues found
+PROJECT DASHBOARD
+	Visual representation in table of
+		Application summary
+		Engagement summary
+		Vulnerability summary
+		Category breakdown
+CODE MATURITY EVALUATION
+	A description/rating of different categories of the codebase
+		Access controls
+		Arithmetic
+		Assembly use
+		Centralization
+		Upgradeability
+		Function composition
+		Front-running
+		Monitoring
+		Specification
+		Testing & verification
+ENGAGEMENT GOALS
+	Explains goals of assessment
+	With questions/targets specifically related to the protocol
+COVERAGE
+	Specifically states all libraries/contracts that are to be assessed
+	As well as a description of the contract and expected scope with things to look for
+AUTOMATED TESTING AND VERIFICATION
+	Explanation of tools used (Slither, Echidna, Manticore)
+	Table with printed outcome of tests
+RECOMMENDATIONS SUMMARY
+	Short term recommendations to address immediate causes of issues
+	Long term recommendations to pertain the development process and long-term design goals
+FINDINGS SUMMARY
+	A table with each vulnerability/issue found as well as its type/category and severity
+VULNERABILITY CLASSIFICATIONS
+	Explaining the vulnerability classes
+		Access controls
+		Auditing and logging
+		Authentication
+		Configuration
+		Cryptography
+		Data exposure
+		Data validation
+		Denial of service
+		Error reporting
+		Patching
+		Session management
+		Timing
+		Undefined behavior
+	Explaining the severity categories
+		Informational
+		Undetermined
+		Low
+		Medium
+		High
+	Explaining the difficulty levels
+		Undetermined
+		Low
+		Medium
+		High
+CODE MATURITY CLASSIFICATIONS
+	Description of the code maturity classification
+		Same contents as the vulnerability classes
+	Rating criterea
+		Strong				No concerns
+		Satisfactory			Minor issues
+		Moderate			Some issues
+		Weak				Has or leads to multiple issues (more might be present)
+		Missing				Component was missing
+		NotApplicable			Component NA	
+		NotConsidered			Component not reviewed
+		FurtherInvestigationRequired	Self explanatory
+NON-SECURITY-RELATED FINDINGS
+	Non security related things but they may
+		Improve readability
+		Prevent introduction of vulnerabilities in the future
+WHITEPAPER RECOMMENDATIONS
+	List of thing to improve the whitepaper
+		Add definitions for each symbol
+		Use naming system in whitepaper and codebase
+		Add examples of formulas
+		Replace TODOS
+		Add explanations of all concepts to increase whitepapers readability
+		Add more diagrams
+TOKEN INTEGRATION CHECKLIST
+	Is a checklist that provides recommendations for interactions with arbitrary tokens
+	Every unchecked item should be justified, and its associated risks should be understood
+		This is a fantastic reference
+			https://github.com/crytic/building-secure-contracts
+			(See the token integration checklist)
+		Here are the main points in the checklisk
+			General security considerations
+			ERC Conformity
+			Contract composition
+			Owner privileges
+			Token scarcity
+DETECTING CORRECT LOCK USAGE
+	This section is about a custom slither script developer during the assessemnt
+	Summarizes the purpose of the targeted contract for the test
+	Recommended to add the custom test to the testing workflow for devs from now on
+FRONT-RUNNING INITIALIZE TESTS
+	Two shown tests demonstrating an exploit of one of the found vulnerabilities
+MANUAL ANALYSIS OF OVERFLOW OF `amountIn + feeAmount`
+	Explanation of a finding with manual analysis
+	Describes a potential overflow where two uint256's are added together
+	Currently not possible to overflow, but safemath is recommended to be used anyways incase parameter change in future
+	They mathematically prove that it's impossible to overflow which is pretty neat
+UNIT TEST FOR TOB-UNI-008
+	Test code shown for an issue/vulnerability found
+
+Issue 1
+	File
+		UniswapV3Factory.sol
+	Desc
+		Both `constructor` and `setOwner` have a lack of input validation
+		If you accidentally put the wrong address in, you're screwed and need to redeploy the factory contract as well as re-add
+		  pairs and liquidity
+		Because you can't access there functions
+			UniswapV3Factory.enableFeeAmount
+			UniswapV3Pair.setFeeTo
+			UniswapV3Pair.recover
+			UniswapV3Factory.setOwner
+		There are four situations where it can go bad
+			Pass `address(0)` to `constructor`
+			Pass `address(0)` to `setOwner()`
+			Pass an incorrect address to `constructor`
+			Pass an incorrect address to `setOwner()`
+		This isn't really an exploit but still
+	Rec
+		Add relevant validation
+Issue 2
+	File
+		UniswapV3Factory.sol
+	Desc	
+		Missing validation of `_owner` argument could lead to incorrect event
+		Because `setOwner()` lacks input validation, the owner can updated to the exsting owner
+		This doesn't change contract state, but emits an event that falsely indicated the owner has been changed
+	Rec
+		Add relevant validation
+Issue 3
+	File
+		UniswapV3Pool.sol
+	Desc
+		Anyone could steal pool tokens' earned interest
+		Unexpected ERC20 token interest behaviour might allow token interest to count toward the amount of tokens required
+		  for the `UniswapV3Pool.mint` and `<same>.flash` functions, enabling the user to avoid paying in full
+		The mint function allows an account to increase its liquidity in a position
+		It's possible to have a token that gives passive interest, and you call `getInterest(address)` to mint the tokens to
+		  the specified address
+		If there is some liquidity already, it will be accuring interest so an attacker could call `mint` and then call
+		  `getInterest(address)` where the address is the pool
+		This way, the attacker has 'added' to the pool by making the contract claim interest
+	Rec
+		Can't really work around this, so add to documentation to explain that it can affect stardard payments for
+		  minting and flash loaning
+Issue 4
+	File
+		Whitepaper
+	Desc
+		An incorrect formula has been provided in the whitepaper
+		Someone might read the whitepaper with the wrong formula and do something to lose money
+	Rec
+		Correct the formala with the right one
+Issue 5
+	File
+		UniswapV3Pool.sol
+	Desc
+		An incorrect comparison in the `swap` function allows the swap to succeed even if no tokens are paid
+		This issue could be used to drain any pool of all its tokens at no cost
+		The `swap` function caluclates how many tokens `msg.sender` needs to pay (amountIn) to get the requested amount of
+		  output tokens (amountOut)
+		It then calls `uniswapV3SwapCallback` function on `msg.sender` passing in the amount of tokens to be paid
+		The callback function should then transfer at least the requested amount of tokens to the pool contract
+		Afterward, a `require` inside the `swap` function verifies that the correct amount of tokens have been transferred
+		  to the pool
+		NGL this one is pretty confusing and I _get_ it, but I can't manually process the code in my head and see the exploit
+		Basically the exploit would be
+			Bob deploys a pool for USDT/DAI
+			The pool holds 1,000,000 DAI
+			Eve calls a swap for 1,000,000 DAI but transfers 0 USDT, stealing all DAI from the platform
+	Recommendation
+		Replace the `>=` with `<=` inside the require in the `swap` function	
+Issue 6
+	File
+		UniswapV3Pool.sol
+	Desc
+		The `swap` function relies on an unbounded loop
+		An attacker could disrupt swap operations by forcing the loop to go through too many operations, potentially trapping
+		  the swap due to a lack of gas
+		Whenever a swap happens the concentrated liquidity moves to the next tick that suits
+		This is done in a while loop until satisfied
+		An attacker could create thousands of positions with 1wei to make the system very costly and potentiall prevent
+		  swap operations
+		The attacker would have to pay gas, but an Ethereum miner could create a position for free, and if the system
+		  were deployed on a layer2 solution (EG optimism) the attacker's gas payments would be significantly lower
+	Recommendation
+		Set a reasonable minimum tick spacing requirement or have a minimum for liquidity per position to make it
+		  economically unviable
+Issue 7
+	File
+		UniswapV3Pool.sol
+	Desc
+		A front-run on UniswapV3Pool.initialize allows an attacker to set an unfair price and to drain assets from the 
+		  first deposits
+		`UniswapV3Pool.initialize` initiates the pool's price
+		There are no access controls on the function, so anyone could call it on a deployed pool
+		Initializing a pool with an incorrect price allows an attacker to generate profits from the initial liquidity
+		  provider's deposits
+	Expl
+		Bob deploys a pool for assets A and B through a deployment script
+		The current market price is 1A == 1B
+		Eve front-runs Bob's TX to the `initialize` function and sets a price such that 1A ~= 10B
+		Bob calls `mint` and deposits assets A and B worth $100,000, sending ~10 times more of asset B than asset A
+		Eve swaps A tokens for B tokens at an unfair price, profiting off Bob's deployment
+	Recommendation
+		Short term options
+			Moving the price operations from `initialize` to the construtor
+			Adding access controls to `initialize`
+			Ensuring that the documentation clearly warns users about incorrect initialization
+		Long term
+			Avoid initialization outside of the constructor
+			If not possible, ensure that underlying risks of initialization are documented and properly tested
+Issue 8
+	File
+		UniswapV3Pool.sol, libraries/SwapMath.sol
+	Desc
+		Swapping on a tick with zero liquidity enables a user to adjust the price of 1 wei of tokens in any direction
+		As a result, an attacker could set an arbitrary price at the pool's initialization or if the liquidity providers 
+		  withdraw all of the liquidity for a short time
+		Swapping 1 wei in `exactIn` with a liquidity of zero and a fee enabled with cause `amountRemainingLessFee` and 
+		  `amountIn` to be zero
+		As `amountRemainingLessFee == amountIn`, the square root ratio will be the square root target ratio
+		On a tick without liquidity, anyone could move the price and the tick in any direction
+		A user could abuse this option to move the initial pool's price (EG between its initialization and minting) or to
+		  move the pool's price if all the liquidity is temporarily withdrawn
+		This one is kinda confusing too
+	Rec
+		Not a straightforward way to prevent the issue
+Issue 9
+	File
+		libraries/TransferHelper.sol
+	Desc
+		Because the pool fails to check that a contrac exists, the pool may assume that failed TXs involving descructed tokens
+		  are successful
+		`TransferHelper.safeTransfer` performs a transfer with a low-level call without confirming the contract's existence
+		As a result, if tokens have not yet been deployed or have been destroyed, `safeTransfer` will return `success` even
+		  though no transfer was executed

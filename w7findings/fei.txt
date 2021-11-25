@@ -1,0 +1,20 @@
+EXECUTIVE SUMMARY
+	States the stard and end date of engagement
+	States who did the assement
+	States the total amount of days on engagement
+SCOPE
+	States the specific commit to be assessed
+	States the infrastructure assessemnt scope
+FINDINGS
+	States the severity and explains them
+		(minor/medium/major/critical)
+3.1
+	There is a `=` that should be a `+=`
+	Instead of adding to the amount of FGEN that has been commited, it just overwrites the previous committed amount
+	Recommendation
+		Change the `=` to a `+=`
+3.2
+	The GenesisGroup related stuff is only for people who are here for the beginning launch
+	But you can still call `GenesisGroup.purchase` and `GenesisGroup.commit` 
+	Recommendation
+		Make sure these can't be called after launch
