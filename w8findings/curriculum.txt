@@ -1,0 +1,24 @@
+Article
+	https://secureum.substack.com/p/audit-findings-201
+Quiz
+	Link
+		https://www.classmarker.com/online-test/start/?quiz=emr6197682124a66
+	Details
+		8 questions
+		2min/question
+		Based on one contract
+Assignments
+	Read audit report
+		1Inch
+			https://consensys.net/diligence/audits/2020/12/1inch-liquidity-protocol/
+		Origin dollar
+			https://github.com/trailofbits/publications/blob/master/reviews/OriginDollar.pdf
+		Synthetix Ethercollateral
+			https://github.com/sigp/public-audits/blob/master/synthetix/ethercollateral/review.pdf
+		Holdefi
+			https://blog.openzeppelin.com/holdefi-audit
+	Stay updated with
+		https://weekinethereumnews.com/
+		https://www.blockthreat.io/
+		https://rekt.news/
+		https://secureum.substack.com/

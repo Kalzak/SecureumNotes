@@ -1,0 +1,1185 @@
+102
+	Proto
+		Umbra
+	Title
+		Document potential edge cases for hook receiver contracts
+	Desc
+		The functions `withdrawTokenAndCall()` and `withdrawTokenAndCallOnBehalf()` make a call to a hook contract designated
+		  by the owner of the withdrawing stealth address
+		There are very few constraints on the parameters to these calls in the Umbra contract itself
+		Anyone can force a call to a hook contract by transferring a small amount of tokens to an address that they control and
+		  withdrawing these tokens, passing the target address as the hook receiver	
+	Rec
+		Developers of these `UmbraHookReceiver` contracts should be user to validate both the caller of the `tokensWithdrawn()`
+		  function and the function parameters
+103
+	Proto
+		Umbra
+	Title
+		Document token behavior restrictions
+	Desc
+		As with any protocol that interacts with arbitrary ERC20 tokens, it is important to clearly document which tokens are
+		  supported
+		Often this is best done by providing a specification for the behaviour of the expected ERC20 tokens and only relaxing
+		  this specification after careful review of a particular class of tokens and their interactions with the protocol
+	Rec
+		Known deviations from 'normal' ERC20 behavior should be explicitly noted as NOT supported by the Umbra protocol
+		1
+			Deflationary or fee-on-transfer tokens
+			The internal accounting will be out of sync which can result in loss of funds
+		2
+			Inflationary tokens
+			Umbra contract provides no mechanism for claiming positive balance adjustments
+		3
+			Rebasing tokens
+			A combination of the above
+			These are tokens which an accounts balance increases or decreases along with expansions/contractions in supply
+			The contract provides no mechanism to update its internal accounting in response to these unexpected balance
+			  adjustments, and funds may be lost as a result
+104
+	Proto
+		Defi Saver
+	Title
+		Full test suite is recommended
+	Desc
+		The test suite at this stage is not complete and many of the tests fail to execute
+		For complicated systems such as DeFi Saver, which uses many different modules and interacts with different DeFi 
+		  protocols, it is crucial to have a full test coverage that includes the edge cases and failed scenarios
+		Especially this helps with safer future development and upgrading each module
+		As we've seen in some SC incidents, a complete test suite can prevent issues that might be hard to find with manual 
+		  reviews
+	Rec
+		Add a full coverage test suite
+105
+	Proto
+		DeFi Saver
+	Title
+		Kyber getRates code is unclear
+	Desc
+		Function names don't reflect their true functionalities, and the code uses some undocumented assumptions
+	Rec
+		Refactor the code to separate getting rate functionality with `getSellRate` and `getBuyRate`
+		Explicitly document any assumptions in the code (slippage etc)
+106
+	Proto
+		DeFi Saver
+	Title
+		Return value is not used for `TokenUtils.withdrawTokens`
+	Desc
+		The return value of `TokenUtils.withdrawTokens` which represents the actual amount of tokens that were transferred
+		  is never used throughout the repository
+		This might cause discrepancy in the case where the original value of `_amount` was `type(uint256).max`
+107
+	Proto
+		DeFi Saver
+	Title
+		Missing access control for `DeFiSaverLogger.Log`
+	Desc
+		`DeFiSaverLogger` is used as a logging aggregator within the entire dApp, but anyone can create logs
+	Rec
+		Add access control to all functions appropriately
+108
+	Proto
+		DAOFi
+	Title
+		Remove stale comments
+	Desc
+		Remove inline comments that suggest the two `uint256` values of `DAOfiV1Pair.reserveBase` and `DAOf1V1Pair.reserveQuote`
+		  are stored in the same storage slot
+		This is likely a carryover from the UniswayV2Pair contract, in which `reserve0`, `reserve1`, and `blockTimestampLast`
+		  are packed into a single storage slot
+	Rec
+		Remove stale comments
+109
+	Proto
+		mstable-1.1
+	Title
+		Descrepancy between code and comments
+	Desc
+		There is a mismatch between what the code implements and what the corresponding comment describes that code implements
+	Rec
+		Update the code or the comment to be consistent
+110
+	Proto
+		DAOfi
+	Title
+		remove unnecessary call to `DAOfiV1Factory.formula()`
+	Desc
+		The `DAOfiV1Pair` functions `initialize()`, `getBaseOut()` and `getQuoteOut()` all use the private function 
+		  `_getFormula()`, which makes a call to the factory to retreive the address of the `BancorFormula` contract
+		The formula address in the factory is set in the constructor and cannot be changed, so these calls can be replaced
+		  with an immutable value in the pair contract that is set in its constructor
+	Rec
+		Remove unnecessary calls
+111
+	Proto
+		DAOfi
+	Title
+		Deeper validation of curve math
+	Desc
+		Increased testing of edge cases in complex mathematical operations could have identified at least one issue raised in 
+		  this report
+		Additional unit tests are recommended, as well as fuzzing or property-based testing of curve-related operations
+		Improperly validated interactions with the `BancorFormula` contract are seen to fail in unanticipated and potentially
+		  dangerous ways, so care should be taken to validate inputs and prevent pathological curve parameters
+	Rec
+		More validation of mathematical operations
+112
+	Proto
+		Fei
+	Title
+		`GovernorAlpha` proposals may be canceled by the proposer, even after they have been accepted and queued
+	Desc
+		`GovernorAlpha` allows proposals to be canceled via `cancel`
+		A proposer may cancel proposals in any of these states
+			Pending
+			Active
+			Canceled
+			Defeated
+			Succeeded
+			Queued
+			Expired
+	Rec
+		Prevent proposals from being canceled unless they are in the pending or active states
+113
+	Proto
+		eRLC
+	Title
+		Require a delay period before granting `KYC_ADMIN_ROLE`
+	Desc
+		The KYC Admin has the ability to freeze the funds of any user at any time by revonig the `KYC_MEMBER_ROLE`
+		The trust requirements from users can be decreased slightly by implementing a delay on granting this ability to new
+		  addresses
+		While the management of private keys and admin access is outside the scope of this review, the addition of a time delay
+		  can also help protect the development team and the system itself in the result of a private key compromise
+	Rec
+		Use a `TimelockController` as the `KYC_DEFAULT_ADMIN` of the eRLC contract
+114
+	Proto
+		1inch Liquidity
+	Title
+		Improve inline documentation and test coverage
+	Desc
+		The source-units hardly contain any inline documentation which makes it hard to reason about methods and how they are 
+		  supposed to be used
+		Additionally, test-coverage seems to be limited
+		Especially for a public-facing exchange contract system test-covarge should be extensive, covering all methods and
+		  functions that can directly be accessed including potential security-relevant and edge-cases
+		This would have helped in detecting some of the findings raised with this report
+	Rec
+		Consider...
+			Adding NatSpec-format compliant inline code documentation
+			Describe functions
+			What they are used for
+			Who is supposed to interact with them
+			Document function or source-unit specific assumptions
+			Increase test coverage
+115
+	Proto
+		1inch Liqudiity
+	Title
+		Unspecific compiler version pragma
+	Desc
+		For most source-units the compiler version pragma is very unspecific (^0.6.0)
+		While this often makes sense for libraries to allow them to be included with multiple different versions of an 
+		  application, it may be a security risk for the actual application implementation itself
+		A known vulnerable compiler version may accidentally be selected or security tools might fall-back to an older 
+		  compiler version ending up actually checking a different evm compilation that is ultimately deployed on the blockchain
+	Rec
+		Avoid floating pragmas
+		Highly recommend pinning a concrete compiler version (latest without security issues) it at least the top-level
+		  'deployed' contracts to make it unambigious which compiler version is being used
+		Rule of thumb: A flattened source-unit should have at least one non-floating concrete solidity compiler version pragma
+116
+	Proto
+		1inch Liquidity
+	Title
+		Use of hardcoded gas limits can be problematic
+	Desc
+		Hardcoded gas limits can be problematic as the past has shown that gas economics in Ethereum have changed, and may
+		  change again potentially rendering the contract system unusable in the future
+	Rec
+		Be conscious about this potential limitation and prepare for the case where gas prices might change in a way that
+		  negatively affects the contract system
+117
+	Proto
+		1inch Liquidity
+	Title
+		Anyone can steal all the funds that belong to `ReferralyFeeReceiver`
+	Desc
+		The `ReferralFeeReceiver` receives pool shares when users `swap()` tokens in the pool
+		A `ReferralFeeReceiver` may be used with multiple pools and, therefore, be a lucrative target as it is holding pool
+		  shares
+		Any token or ETH that belongs the `ReferralFeeReceiver` is at risk and can be drained by any user by providing a custom
+		  mooniswap pool contract that references existing token holdings
+		It should be noted that none of the functions on `ReferralFeeReceiver` verify that the user-provided mooniswap pool
+		  address was actually deployed by the linked MooniswapFactory
+	Rec
+		Enfore that the user-provided mooniswap contract was actually deployed by the linked factory
+		Other contracts cannot be trusted
+		Consider implementing token sorting and de-duplication (tokenA != tokenB) in the pool contract constuctor as well
+		Consider employing a reentrancy guard to safeguard the contract from reentrancy attacks
+		Improve testing
+		The methods mentioned here are not covered at all
+		Improve documentation and provide a specification that outlines how this contract is supposed to be used
+118
+	Proto
+		1inch Liquidity
+	Title
+		Unpredictable behavior for users due to admin front running or general bad timing
+	Desc
+		In a number of cases, administrators of contracts can update or upgrade things in the system without warning
+		This has the potential to violate a security goal of the system
+		Specifically, privileged roles could use front running to make malicious changes just ahead of incoming TXs, or purely
+		  accidential negative effects could occur due to the unfortunate timing of changes
+		In general users of the system should have assurances about the behavior of the action they're about to take
+119
+	Proto
+		Growth DeFi
+	Title
+		Improve system documentation and create a complete technical specification
+	Desc
+		A system's design specification and supporting documentation should be almost as important as the system's 
+		  implementation itself
+		Users rely on high-level documentation to understand the big picture of how a system works
+		Without spending time and effort to create palatable documentation, a user's only resource is the code itself, something
+		  the vast majority of users cannot understand
+		Security assessments depend on a complete technical specification to understand the specifics of how a system works
+		When a behavior is not specified (or is specified incorrectly), security assessments must base their knowledge in
+		  assumptions, leading to less effective review
+		Maintaining and updating code relies on supportid documentation to know why the system is implemented in a specific way
+		If code maintainers cannot reference documentation, they must rely on memory or assistance to make high-quality changes
+		Currently the only documentation for Growth DeFi is a single README file as well as code comments
+	Rec
+		Improve system documentation and create a complete technical specification
+120
+	Proto
+		Growth DeFi
+	Title
+		Ensure system states, roles, and permissions are sufficiently restrictive
+	Desc
+		SC code should strive to be strict
+		Strict code behaves predictably, is easier to maintain and increases a system's abilitiy to handle nonideal conditions
+		The assessment of Growth DeFi found that many of its states, roles, and permissions are loosely defined
+	Rec
+		Document the use of administrator permissions
+		Monitor the usage of administrator permissions
+		Specify strict operation requirements for each contract
+121
+	Proto
+		Growth DeFi
+	Title
+		Evaluate all tokens prior to inclusion in the system
+	Desc
+		Review current and future tokens in the system for non-standard behavior
+		Particularly dangerous functionality to look for includes in a callback (IE ERC777) which would enable an attacker to
+		  execute potentially arbitrary code during the TX, fees on transfers, or inflationary/deflationaly tokens
+	Rec
+		Evaluate all tokens prior to inclusion in the system
+122
+	Proto
+		Growth DeFi
+	Title
+		Use descriptive names for contracts and libraries
+	Desc
+		The code base makes use of many different contracts, abstract contracts, interfaces and libraries for inheritance and 
+		  code reuse
+		In principle, this can be a good practice to avoid repeated use of similar code
+		However, with no descriptive naming conventions to signal which files would contain meaningful logic, codebase becomes
+		  difficult to navigate
+	Rec
+		Use descriptive names for contracts and libraries
+123
+	Proto
+		Growth DeFi
+	Title
+		Prevent contracts from being used before they are entirely initialized
+	Desc
+		Many contracts alllow users to deposit/withdraw assets before the contracts are entirely initialized, or while they are 
+		  in a semi-configured state
+		Because these contracts allow interaction on semi-configured states, the number of configurations possible when 
+		  interacting with the system makes in incredibly difficult to determine whether the contracts behave as expected in
+		  every scenario, or even what behavior is expected in the first place
+	Rec
+		Prevent contracts from being used before they are entirely initialized
+124
+	Proto
+		Growth DeFi
+	Title
+		Potential resource exhaustion by external calls performed within an unbounded loop
+	Desc
+		`DydxFlashLoanAbstraction._requestFlashLoan` performs external calls in a potentially-unbounded loop
+		Depending on changes made to the DyDx's `SoloMargin`, this may render this flash loan provider prohibitively expensive
+		In the worst case, changes to `SoloMargin` could make it impossible to execute this code due to the block gas limit
+	Rec
+		Reconsider or bound the loop
+125
+	Proto
+		Paxos
+	Title
+		Owners can never be removed
+	Desc
+		The intention of `setOwners()` is to replace the current set of owners with a new set of owners
+		However, this `isOwner` mapping is never updated, which means any address that was ever considered an owner is 
+		  permanently considered an owner for purposes of signing TXs
+	Rec
+		In `setOwners_()`, before adding new owners, loop through the current set of owners and clear their `isOwner` booleans
+126
+	Proto
+		Aave v2
+	Title
+		Potential manipulation of stable interest rates using flash loans
+	Desc
+		Flash loans allow users to borrow large amounts of liquidity from the protocol
+		It is possible to adjust the stable rate up or down by momentarily removing or adding large amounts of liquidity to
+		  reserves
+	Rec
+		This type of manipulation is difficult to prevent especially when flash loans are available
+		Aave should monitor the protocol at all times to make sure that interest rates are being rebalanced to sane values
+127
+	Proto
+		Aave Governance DAO
+	Title
+		Only whitelisted validated assets
+	Desc
+		Because some of the functionality relies on correct token behavior, any whitelisted token should be audited in the 
+		  context of this system
+		Problems can arise if a malicious token is whitelisted because it can block people from voting with that specific token
+		  or gain unfair advantage if the balance can be manipulated
+	Rec
+		Make sure to adit any new whitelisted address
+128
+	Proto
+		Aave CPM Price Provider
+	Title
+		Underflow if `TOKEN_DECIMALS` are greater than 18
+	Desc
+		In `latestAnswer()`, the assumption is made that `TOKEN_DECIMALS` is less than 18
+	Rec
+		Add a simple check to the constructor to ensure the added token has 18 decimals or less
+129
+	Proto
+		Aave CPM Price Provider
+	Title
+		Chainlink's performance at times of price volatility
+	Desc
+		In order to understand the risk of Chainlink oracle deviating significantly, it would be helpful to compare historical
+		  prices on Chainlink when prices are moving rapidly, and see what the largest historical delta is compared to the
+		  live price on a large exchange
+	Rec
+		Review Chainlink's perfermance at times of volatility
+130
+	Proto
+		Lien
+	Title
+		Consider an iterative approach to launching, be aware and prepare for worst case scenario
+	Desc
+		The system has many components with complex functionality and no apparent upgrade path
+	Rec
+		Identify which components are crucial for a minimum viable system, then focusing efforts on ensuring the security of
+		  those components first, then moving on to the others
+		During the early life of the system, have a method for pausing and upgrading the system
+131
+	Proto
+		Balancer Finance
+	Title
+		Use of modifiers for repeated checks
+	Desc
+		It is recommened to use modifiers for common checks within different functions
+		This will result in less code duplication in the given SC and adds significant readability into the code base
+	Rec
+		Use of modifiers for repeated checks
+132
+	Proto
+		Balancer Finance
+	Title
+		Switch modifier order
+	Desc
+		`BPool` functions often use modifiers in the following order:
+			`_logs_`
+			`_lock_`
+		Because `_lock_` is a reentrancy guard, it should take precedence over `_logs_`
+	Rec
+		Place `_lock_` before other modifiers; ensuring it is the very first and very last thing to run when a functions called
+133
+	Proto
+		MCDEX Mai V2
+	Title
+		Address codebase fragilitiy
+	Desc
+		Software is considered 'fragile' when issues or changes in one part of the system can have side-effects in conceptually
+		  unrelated parts of the codebase
+		Fragile software tends to break easily and may be challenging to maintain
+	Rec
+		Building an anti-fragile system requires careful thought and consideration outside of the scope of this review
+		In general, prioritize the following concepts
+			Follow the single-responsibility principle of functions
+			Reduce reliance on external systems
+134
+	Proto
+		Liquidity
+	Title
+		Reentrancy could lead to incorrect order of emitted events
+	Desc
+		The order of operations in the `_moveTokensAndETHfromAdjustment` function in the `BorrowOperations` contract may allow
+		  an attacker to cause events to be emitted out of order
+		In the event that the borrower is a contract, this could trigger a callback into `BorrowerOperations`, executing the
+		  `_adjustTrove` flow above again
+		As the `_moveTokensAndETHfromAdjustment` call is the final operation in the function the state of the system on-chain
+		  cannot be manipulated
+		However, there are events that are emitted after this call
+		In the event of a reentrant call, these events would be emitted in the incorrect order
+		The event for the second operation is emitted first, followed by the event for the first operation
+		Any off-chain monitoring tools may now have an inconsistent view of on-chain state
+	Rec
+		Apply the checks-effects-interactions pattern and move the event emissions above the call to 
+		  `_moveTokensAndETHfromAdjustment` to avoid the potential reentrancy
+135
+	Proto
+		Origin Dollar
+	Title
+		Variable shadowing from OUSD to ERC20
+	Desc
+		OUSD inherits from ERC20, but redefines the `_allowances` and `_totalSupply` state variables
+		As a result, access to these variables can lead to returning different values
+	Rec
+		Remove the shadowed variables
+136
+	Proto
+		Origin Dollar
+	Title
+		`VaultCode.rebase` functions have no return statements
+	Desc
+		`VaultCode.rebase(bool)` returns a `uint` but lack a return statement
+		As a result these functions will always return the default value, and are likely to cause issues fo their callers
+		Both `VaultCore.rebase()` and `VaultCore.rebase(bool)` are expected to return a `uint256`\
+		`rebase()` does not have a return statement
+		`rebase(bool)` has one return statement in one branch (return 0), but lacks a return statement for the other paths
+		So both functions will always return zero
+		As a result, third-party code relying on the return value might not work as intended
+	Rec
+		Add the missing return statements or remove the return type in `VaultCore.rebase()` and `VaultCore.rebase(bool)`
+		Properly adjust the documentation as necessary
+137
+	Proto
+		Origin Dollar
+	Title
+		Multiple contracts are missing inheritances
+	Desc
+		Multiple contracts are the implementation of their interfaces, but do not inherit from them
+		This behaviour is error-prone and might lead the implementation to now follow the interface if the code is updated
+	Rec
+		Ensure contracts inherit from their interfaces
+138
+	Proto
+		Yield
+	Title
+		Solidity compiler optimizations can be dangerous
+	Desc
+		Yield Protocol has enabled optional compiler optimizations is Solidity
+		There have been several bugs with security implications related to optimizations
+		Moreover, optimizations are actively being developed
+		Solidity compiler optimizations are disabled by default, and it is unclear how many contracts in the wild actually use
+		  them
+		Therefore, it is unclear how well they are being tested and exercised
+		High-severity security issues due to optimization bugs have occurred in the past
+		A high-severity bug in the emscripten -generated solc-js compiler used by Truffle and Remix persisted until late 2018
+		The fix for this bug was not reported in the Solidity CHANGELOG
+		Another high-severity optimization bug resulting in incorrect bit shuft results was patched in Solidity 0.5.6
+	Rec
+		Short term
+			Measure the gas savings from optimizations, and carefully weigh them against the possibility of a bug
+		Long term
+			Monitor the development and adoption of Solidity compiler optimizations to assess their maturity
+139
+	Proto
+		Yield
+	Title
+		Permission-granting is too simplistic and not flexible enough
+	Desc
+		The Yield Protocol contracts implement an oversimplified permission system that can be abused by the admin
+		The Yield Protocol implement several contracts that need to call privileged functions from each other
+		However, there is no way to specify which operation can be called for every privileged user
+		All the authorized addresses can call any restricted function, and the owner can add any number of them
+		Also, the privileged addresses are supposed to be SCs; however, there is no check for that
+		Moreover, once an address is added, in cannot be deleted
+	Rec
+		Rewrite the authorization system to allow only certain addresses to access certain functions
+140
+	Proto
+		Yield
+	Title
+		Lack of validation when setting the maturity value
+	Desc
+		When a `fyDAI` contract is deployed, one of the deployment parameters is a maturity date, passed as a Unix timestamp
+		This is the date at which point `fyDAI` tokens can be redeemed for the underlying Dai
+		Currently, the contract constructor performs no validation on this timestamp to ensure it is within an acceptable range
+		As a result, it is possible to mistakenly deploy a `YDai` contract that has a maturity date in the past or many years
+		  in the future, which may not immediately be noticed
+	Rec
+		Short term
+			Add checks to the `YDai` contract consturctor to ensure maturity timestamps fall within an acceptable range
+			This will prevent maturity dates from being mistakenly set in the past or too far in the future
+		Long term
+			Always perform validation of parameters passed to contract consturctors
+			This will help detect and prevent errors during deployment
+141
+	Proto
+		Yield
+	Title
+		Delegates can be added or removed repeatedly to bloat logs
+	Desc
+		Several contracts in the Yield Protocol system inherit the Delegable contract
+		This contract allows users to delegate the ability to perform certain operations on their behalf to other addresses
+		When a user adds or removes a delegate, a corresponding event is emitted to log this operation
+		However, there is no check to prevent a user from repeatedly adding or removing a delegation that is already enabled
+		  or revoked, which could allow redundant events to be emitted repeatedly
+	Rec
+		Short term
+			Add a `require` statement to check that the delegate address is not already enabled or disabled for the user
+			This will ensure log messages are only emitted when a delegate is activated or deactivated
+		Long term
+			Review all operations and avoid emitting events in repeated calls to idempotent operations
+			This will help prevent bloated logs
+142
+	Proto
+		0x
+	Title
+		Lack of events for critical operations
+	Desc
+		Several critical operations do not trigger events, which will make it difficult to review the correct behavior of the
+		  contracts once deployed
+		Users and blockchain monitoring systems will not be able to easily detect suspicious behaviors without events
+	Rec
+		Short term
+			Add events where appropriate for all critical operations
+		Long term
+			Consider using a blockchain monitoring system to track any suspicious behavior in the contracts
+143
+	Proto
+		0x
+	Title
+		`_assertStakingPoolExists` never returns true
+	Desc
+		The `_assertStakingPoolExists` should return a bool to determine if the staking pool exists or not
+		However, it only returts false or reverts
+		The `_assertStakingPoolExists` function checks that a staking pool exists given a pool id parameter
+		However, this function does not use a return statement and therefore, it will always return false or revert
+	Rec
+		Add a return statement or remove the return type
+		Properly adjust the documentation if needed
+144
+	Proto
+		DFX Finance
+	Title
+		`_min*` and `_max*` have unorthordox semantics
+	Desc
+		Throughout the Curve contract, `_minTargetAmount` and `_maxOriginTargetAmount` are used as open ranges 
+		  IE ranges that exclude the value itself
+		This contravenes the standard meanings of the terms 'minimum' and 'maximum' which are generally used to describe
+		  closed ranges
+	Rec
+		Short term
+			Unless they are intended to be strict, make the inequalities in the `require` statement non-strict	
+			Alternatively...
+			Consider refactoring the variables or providing additional documentation to convey that they are meant to be 
+			  exclusive bounds
+		Long term
+			Ensure that mathematical terms such as 'minimum', 'at least', 'at most' are used in the typical way - that is - 
+			  to describe values inclusive of minimums or maximums (as relevant)
+145
+	Proto
+		DFX Finance
+	Title
+		`CurveFactory.newCurve` returns existing curves without provided arguments
+	Desc
+		`CurveFactory.newCurve` takes values and creates a Curve contract instance for each `_baseCurrency` and `_quoteCurrency`
+		  pair, populating the Curve with provided weights and assimilator contract references
+		However, if the pair already exists, the existing Curve will be returned without any indication that it is not a newly
+		  created Curve with the provided weights
+		If an operator attempts to create a new Curve for a base-and-quote-currency pair that already exists, `CurveFactory`
+		  will return the existing Curve instance regardless of whether other creation parameters differ
+		A naive operator may overlook this issue
+	Rec
+		Consider rewriting `newCurve` such that it reverts in the event that a base-and-quote-currency pair already exists
+		A view function can be used to check for and retreive existing curves without any gas payment prior to an attempt
+		  at Curve creation
+146
+	Proto
+		DFX Finance
+	Title
+		Missing zero-address checks in `Curve.transferOwnership` and `Router.constructor`
+	Desc
+		Like other similar functions, `Curve._transfer` and `Orchestrator.includeAsset` perform zero-address checks
+		However, `Curve,transferOwnership` and the Router constructor do not
+		This may make sense for `Curve.transferOWnership`, because without zero-address checks, the function may serve as a
+		  means of burning ownership
+		However, popular contracts that define similar functions often consider this case, such as OZ's `Ownable` contracts
+		Conversely, a zero-address check should be added to the Router constructor to prevent the deployment of an invalid
+		  Router, which would revert upon a call to the zero address
+	Rec
+		Short term
+			Consider adding zero-address checks to the Router's constructor and Curve's `transferOwnership` function to
+			  prevent operator errors
+		Long term
+			Review state variables which referencing contracts to ensure that the code that sets the state variables 
+			  performs the zero-address checks where necessary
+147
+	Proto
+		DFX Finance
+	Title
+		`safeApprove` does not check return values for approve call
+	Desc
+		Although the Router contract uses OZ's `SafeERC20` library to perform safe calls to ERC20's approve function, the
+		  Orchestrator library defines its own `safeApprove` function
+		This function checks that a call to approve was successful but does not check returndata to verify whether the call
+		  returned true
+		In contrast, OZ's `safeApprove` function checks return values appropriately
+		This issue may result in uncaught approve errors in successful Curve deployments, causing undefined behavior
+	Rec
+		Short term
+			Leverage OZ's `safeApprove` function wherever possible
+		Long term
+			Ensure that all low-level calls have accompanying contract existence checks and return value checks where 
+			  appropriate
+148
+	Proto
+		DFX Finance
+	Title
+		ERC20 token Curve does not implement symbol, name, or decimals
+	Desc
+		`Curve.sol` is an ERC20 token and implements all six required ERC20 methods...
+			balanceOf
+			totalSupply
+			allowance
+			transfer
+			approve
+			transferFrom
+		It does not implement the optional but extremely common view methods...
+			symbol
+			name
+			decimals
+	Rec
+		Short term
+			Implement `symbol`, `name`, `decimals` on the Curve contracts
+		Long term
+			Ensure that contracts conform to all required and recommended industry standards
+149
+	Proto
+		DFX Finance
+	Title
+		Insufficient use of `SafeMath`
+	Desc
+		`CurveMath.calculateTrade` is used to compare the output amount for a trade
+		However, although `safeMath` is used throughout the codebase to prevent underflows/overflows, it is not used in this 
+		  calculation
+		Although it could not be proven that the lack of `SafeMath` would cause an arithmetic issue in practice, all such 
+		  calculations would benefit from the use of `SafeMath`
+	Rec
+		Review all critical arithmetic to ensure that it accounts for underflows, overflows, and the loss of precision
+		Consider using `SafeMath` and the safe functions of `ADBKMath64x64` where possible to prevent underflows/overflows
+150
+	Proto
+		DFX Finance
+	Title
+		`setFrozen` can be front-run to deny deposits/swaps
+	Desc
+		Currenty, a curve contract owner can use the `setFrozen` function to set the contract into a state that will block
+		  swaps and deposits
+		A contract owner could leverage this process to front-run TXs and freeze contracts before certain deposits or swaps are
+		  made; the contract owner could then unfreeze them at a later time
+	Rec
+		Short term
+			Consider rewriting `setFrozen` such that any contract freeze will not last long enough for a malicious user
+			  to easily execute an attack
+			Alternatively...
+			Depending on the intended use of this function, consider implementing permanent freezes
+151
+	Proto
+		Hermez Network
+	Title
+		Account creation spam
+	Desc
+		Hermez has a limit of `2 ** MAX_NLEVELS` accounts
+		There is no fee on account creation, so an attacker can spam the network with account creation to fill the tree
+		If `MAX_NLEVELS` is below 32, an attacker can quickly reach the account limit
+		If `MAX_NLEVELS` is above or equal to 32, the time required to fill the tree will depend on the number of TXs accepted
+		  per second, but will take at least a couple of months
+		Ethereum miners do not have to pay for account creation
+		Therefore, an Ethereum miner can spam the network with account creation by sending L1 user TXs
+	Rec
+		Short term
+			Add fee for account creation or ensure `MAX_NLEVELS` is at least 32
+			Also, monitor account creation and alert the community if a malicious coordinator spams the system
+			This will prevent an attacker from spamming the system to prevent new accounts from being created
+		Long term
+			When designing spam mitigation, consider that L1 gas cast can be avoided by Ethereum miners
+152
+	Proto
+		Hermez Network
+	Title
+		Using empty functions instead of interfaces leaves contract error-prone
+	Desc
+		`WithdrawalDelayerInterface` is a contract meant to be an interface
+		It contains functions with empty bodies instead of function signatures, which might lead to unexpected behavior
+		A contract inheriting from `WithdrawalDelayerInterface` will not require an override of these functions and will not
+		  benefit from the compiler checks on its correct interface
+	Rec
+		Short term
+			Use an interface instead of a contract in `WithdrawalDelayerInterface`
+			This will make derived contracts follow the interface properly
+		Long term
+			Properly document the inheritance schema of the contracts
+			Use Slither's inheritance-graph printer to review the inheritance
+153
+	Proto
+		Hermez Network
+	Title
+		`cancelTranscation` can be called on non-queued TX
+	Desc
+		Without a TX existence check in `cancelTransaction`, an attacker can confuse monitoring systems
+		`cancelTransaction` emits an event without checking that the TX to be canceled exists
+		This allows a malicious admin to confuse monitoring systems by generating malicious events
+	Rec
+		Short term
+			Check that the TX to be canceled exists in `cancelTransaction`
+			This will ensure that monitoring tools can rely on emitted events
+		Long term
+			Write a specification of each function and thoroughly test it with unit tests and fuzzing
+			Use symbolic execution for arithmetic invariants
+154
+	Proto
+		Hermez Network
+	Title
+		Contracts used as dependencies do not track upstream changes
+	Desc
+		Third-party contracts like `_concatStorage` are pasted into the Hermez repository
+		Moreover, the code documentation does not specify the exact revision used, or if it is modified
+		This makes updates and security fixes on these dependencies unreliable since they must be updated manually
+		`_concatStorage` is borrowed from the 'solidity-bytes-utils' library, which provides helper functions for byte-related
+		  operations
+		Recently, a critical vulnerability was discovered in the library's slice function which allows arbitrary writes for 
+		  user-supplied inputs
+	Rec
+		Short term
+			Review the codebase and document each dependency's source and version
+			Include the third-party sources as submodules in your Git repository so internal path consistency can be 
+			  maintained and dependencies are updated periodically
+		Long term
+			Identify the areas in the code that are relying on external libraries and use an Ethereum development 
+			  environment and NPM to manage packages as part of your project
+155
+	Proto
+		Hermez Network
+	Title
+		Expected behavior regarding authorization for adding tokens is unclear
+	Desc
+		`addToken` allows anyone to list a new token on Hermez
+		This contradicts the online documentation, which implies that only the governance should have this authorization
+		It is unclear whether the implementation or the documentation is correct
+	Rec
+		Short term
+			Update either the implementation or the documentation to standardize the authorization specificatio for adding
+			  tokens
+		Long term
+			Write a specification of each function and thoroughly test it with unit tests and fuzzing
+			Use symbolic execution for arithmetic invariants
+156
+	Proto
+		Hermez Network
+	Title
+		Contract name duplication leaves codebase error-prone
+	Desc
+		The codebase has multiple contracts that share the same name
+		This allows buidler-waffle to generate incorrect json artifacts, preventing third parties from using their tools
+		Buidler-waffle does not correctly support a codebase with duplicate contract names
+		The compilation overwrites the compilation artifacts and prevents the use of third-party tools, such as Slither
+	Rec
+		Short term
+			Prevent the re-use of duplicate contract names or change the compilation framework
+		Long term
+			Use Slither, which will help detect duplicate contract names
+157
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
+
+	Proto
+		
+	Title
+		
+	Desc
+		
+	Rec
