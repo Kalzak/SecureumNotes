@@ -1,0 +1,9 @@
+All 8 questions in this quiz are based on the `InSecureumDAO` contract snippet
+This is the same contract snippet you will see for all 8 questions of the quiz
+The `InSecureumDAO` contract snippet illustrates some basic functionality of a DAO which includes...
+	Opening of DAO for memberships
+	Allowing users to join as members by depositing a membership fee
+	Creating proposals for voting
+	Casting votes
+	ETC
+Assume all other functionality is implemented correctly

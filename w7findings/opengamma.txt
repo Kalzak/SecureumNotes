@@ -1,0 +1,95 @@
+Intro
+	State the commit of the codebase to be assessed
+	Stated in-scope files
+	State that all external code and contract dependencies are assumed to work
+Privileged roles
+	Discusses how there are roles that have lots of power and need lots of trust
+	Contract specific
+		`Addressbook` owner can...
+			Update address of the protocol's contract
+			Define the address of any other arbitrary key
+			Update the implementation of a certain contract
+		`Controller` owner can...
+			Define who the full and partial pauser are
+			Restrict the usage of certain addresses to perform an arbitrary call
+			Manually refresh the configuration
+		`Controller` operator can...
+			Porform any of the actions inside the controller aside from `redeem`
+		`Controller` pausers can...
+			Partially or fully pause the system at any stage, restricting most of the possible actions
+		`MarginPool` owner can...
+			Define who the farmer is
+		`MarginPool` farmer can...
+			Collect any excess of ERC20 compliant assets on top of the internal balance
+		`Oracle` owner can...
+			Define the assets' pricer
+			Define the assets' locking and dispute periods
+			Define who the disputer is
+		`Oracle` disputer can...
+			Dispute and override a pricer's price
+			Set an expiry price before the pricer has submitted their price
+		`Whitelist` owner can...
+			Whitelist or blacklist products, collaterals, oTokens, and `Callee` contracts
+Ecosystem dependencies
+	Protocol uses time-based logic to determine when options expire
+		Therefore dependent on the availability of the Ethereum network
+		If there is high congestion or miners intentionally delaying TXs, people can lose out on potentially profitable trades
+	The system heavily relies on different price providers (depending on the asset) such as Compound's on Chainlink's oracle
+	  as a trusted source of on-chain asset prices
+Critical severity
+	C01
+		The `controller` contract allows users to interact with the majority of the platform, being able to...
+			Open a vault
+			Deposit collateral assets
+			Minting oTokens
+			Redeem their oTokens
+		All these actions start by calling the `operate` function which then calls `_runActions` function and redirects the
+		  call to the respective action's internal function
+		Once one oToken expires, if an oToken holder wants to exercise their right and collect the payout for their oTokens,
+		  the user must send a `Redeem` action type which would end up in a call to the `_redeem` internal function
+		However, in this action a malicious user can steal all the collateral assets following the attack vector below
+		1
+			Attacker deploys a malicious oToken contract which has the same assets and structure of an existing legi
+			  oToken, especially an oToken with the most amount of collateral asset
+		2
+			The attacker then calls the `operate` function and passes on the argument as follows
+			```
+			[{
+			actionType : Redeem,
+			owner : attacker address,
+			secondAddress : attacker address
+			asset : malicious oToken,
+			vaultId : anything,
+			amount : the max amount of oToken redeemable,
+			index : anything,
+			data : anything
+			}]
+			```
+			The `Controller` contract will first call the `_runActions` function with these arguments, `vaultUpdated` will
+			  not be set to true because `actionType == Actions.ActionType.Redeem` and will skip a conditional statement, 
+			  and then the internal function will be called for the redeem action with these arguments
+		3
+			The `_redeem` function does not check if given oToken is a real one or not, only checks if...
+				`now > otoken.expiryTimestamp`
+				`isSettlementAllowed(maliciousOToken)`
+			Both of these requirements can be satisfied with the malicious oToken and lead to a successful redeem process
+			`Controller will burn the attacker's malicious oTokens and pay out the collateral asset from the pool, 
+			  resulting in the attacker stealing all the collateral assets from the platform
+High severity
+	H01
+		When you want to call `operate` with some value, any unspend ether is not returned 
+	H02
+		Protocol could become insolvent due to market's natural movements
+		The live prices are used by the `getExcessCollateral` function from the `MarginCalculator` contract to calc the 
+		  margin of a vault before the `oToken` expires
+		After the oToken expires, the expired price is then used to calculate the vault margin
+		Because the collateral asset may not be the same as the strike asset or the underlying asset, it is not guaranteed
+		  that the collateral's expiration price will be higher than its price in any point in the past, when the oToken has 
+		  not expired yet, resulting in a possible undercollateralized situation for vaults
+		Even though collateral assets must be whitelisted to be used in the platform, with the caveat described in the issue
+		  `oToken can be created with a non-whitelitsed collateral asset`, assets such as cTokens from Compound that are 
+		  supposed to gain market value of time may suffer a drop in their values due to market fluctuations or events as 
+		  the one in early 2020 (the covid dump), which produced a drop in value of cDai token
+		When the value of all collateral is worth less than the value of all borrowed assets, we say a market in insolvent
+		In case the platform allows the usage of non-monotonically-increasing price assets, the insolvency may be caused by
+		  a simple market price fluctuation
